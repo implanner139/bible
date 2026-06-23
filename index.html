@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>讀經計畫 | 台灣愛聖協會</title>
+  <title>讀經計畫 | iM行動教會</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -48,8 +48,8 @@
 <header style="background:rgba(15,52,96,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)" class="sticky top-0 z-20">
   <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
     <div>
-      <div class="text-xs font-semibold tracking-widest gold-text opacity-70 uppercase">台灣愛聖協會</div>
-      <h1 class="text-base font-bold text-white leading-tight">靈命更新讀經計畫</h1>
+      <div class="text-xs font-semibold tracking-widest gold-text opacity-70 uppercase">iM行動教會</div>
+      <h1 id="hdr-title" class="text-base font-bold text-white leading-tight">靈魂的室內設計師</h1>
     </div>
     <!-- Progress ring -->
     <div class="flex items-center gap-3">
@@ -145,10 +145,10 @@
   <!-- Date picker -->
   <div>
     <div id="june-section">
-      <div class="section-label px-1">以西結書 · 六月</div>
+      <div class="section-label px-1">靈魂的室內設計師 · 六月</div>
       <div id="june-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
     </div>
-    <div class="section-label px-1">保羅書信 · 七月</div>
+    <div class="section-label px-1">31天與保羅一起解鎖生命新視角 · 七月</div>
     <div id="date-grid" class="grid grid-cols-7 gap-1.5"></div>
     <div class="flex items-center gap-5 mt-3 px-1">
       <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4)"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">已完成</span></div>
@@ -317,6 +317,10 @@ function render() {
   // Card re-animate
   const card = document.getElementById('main-card');
   card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
+
+  // Header series title
+  document.getElementById('hdr-title').textContent = currentSection === 'june'
+    ? '靈魂的室內設計師' : '31天與保羅一起解鎖生命新視角';
 
   // Book tag & badges
   document.getElementById('book-tag').textContent = r.book;
