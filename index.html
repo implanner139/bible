@@ -2,133 +2,165 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>七月讀經計畫 | 台灣愛聖協會</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .fade-in { animation: fadeIn 0.25s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    :root {
+      --ink: #1a1a2e;
+      --ink2: #16213e;
+      --gold: #c9a84c;
+      --gold-lt: #e8c97a;
+      --cream: #fdf6e3;
+    }
+    body { background: var(--ink); color: #e8e8f0; font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', sans-serif; }
+    .card { background: #0f3460; border-radius: 20px; }
+    .card-glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; }
+    .gold-text { color: var(--gold); }
+    .gold-border { border-color: var(--gold); }
+    .verse-card { background: linear-gradient(135deg, #2a1a05 0%, #1a0f03 100%); border: 1px solid #6b4c0f; border-radius: 18px; }
+    .fade-in { animation: fadeUp .3s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .day-btn { border-radius: 10px; transition: all .15s; cursor: pointer; }
+    .day-btn:active { transform: scale(.92); }
+    .day-btn.locked { opacity: .3; cursor: not-allowed; }
+    .day-btn.past { background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.3); }
+    .day-btn.today { background: rgba(201,168,76,.25); border: 1px solid var(--gold); }
+    .day-btn.selected { background: var(--gold); color: #1a1a2e; border: 1px solid var(--gold-lt); }
+    .day-btn.future { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+    .tab-btn { padding: 10px 0; font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; color: rgba(232,232,240,.4); transition: all .2s; }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .nav-btn { flex: 1; padding: 14px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); font-size: 14px; font-weight: 600; color: #e8e8f0; transition: all .2s; }
+    .nav-btn:disabled { opacity: .25; cursor: not-allowed; }
+    .nav-btn:not(:disabled):active { background: rgba(255,255,255,.12); }
+    .today-btn { padding: 14px 18px; border-radius: 14px; background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.4); font-size: 14px; font-weight: 600; color: var(--gold); transition: all .2s; white-space: nowrap; }
+    .progress-ring { width: 48px; height: 48px; }
+    .locked-overlay { background: linear-gradient(135deg, rgba(15,52,96,.95), rgba(26,26,46,.98)); border-radius: 20px; }
+    .section-label { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(201,168,76,.6); margin-bottom: 8px; }
+    .practice-god { background: rgba(99,179,237,.08); border: 1px solid rgba(99,179,237,.2); border-radius: 14px; padding: 14px; }
+    .practice-people { background: rgba(252,129,129,.08); border: 1px solid rgba(252,129,129,.2); border-radius: 14px; padding: 14px; }
+    .safe-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col font-sans">
+<body class="min-h-screen">
 
 <!-- Header -->
-<header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
-  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+<header style="background:rgba(15,52,96,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)" class="sticky top-0 z-20">
+  <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
     <div>
-      <h1 class="text-base font-bold text-slate-800">七月讀經計畫</h1>
-      <p class="text-xs text-slate-400">保羅書信 31 天靈修之旅</p>
+      <div class="text-xs font-semibold tracking-widest gold-text opacity-70 uppercase">台灣愛聖協會</div>
+      <h1 class="text-base font-bold text-white leading-tight">七月讀經計畫</h1>
     </div>
-    <div class="text-right">
-      <div class="text-xl font-bold text-blue-600">
-        <span id="hdr-done">0</span><span class="text-xs font-normal text-slate-400"> / 31 天</span>
+    <!-- Progress ring -->
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <div class="text-xl font-black text-white"><span id="hdr-done">0</span><span class="text-sm font-normal" style="color:rgba(232,232,240,.4)"> /31</span></div>
+        <div class="text-[10px] gold-text opacity-70">保羅書信</div>
       </div>
-      <div class="w-20 h-1.5 bg-slate-200 rounded-full mt-1 ml-auto">
-        <div id="progress-bar" class="h-1.5 bg-blue-500 rounded-full transition-all duration-500" style="width:0%"></div>
+      <div class="relative w-10 h-10">
+        <svg class="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+          <circle id="progress-ring" cx="18" cy="18" r="15.9" fill="none" stroke="#c9a84c" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"/>
+        </svg>
       </div>
     </div>
   </div>
 </header>
 
-<main class="flex-1 max-w-2xl mx-auto w-full px-4 py-5 space-y-4">
+<main class="max-w-lg mx-auto px-4 pt-4 pb-6 space-y-4">
 
   <!-- Main card -->
-  <div id="main-card" class="bg-white rounded-2xl shadow-md border-l-4 border-blue-400 overflow-hidden fade-in">
-    <!-- Card header -->
-    <div id="card-header" class="bg-gradient-to-r from-blue-50 to-white px-5 pt-5 pb-4">
+  <div id="main-card" class="card overflow-hidden fade-in">
+
+    <!-- Card top: book + day + passage -->
+    <div id="card-top" class="px-5 pt-5 pb-4" style="background:linear-gradient(135deg,#0d2137,#0f3460)">
       <div class="flex items-start justify-between">
-        <div class="space-y-1.5">
+        <div class="flex-1 min-w-0 pr-3 space-y-2">
           <div class="flex items-center gap-2 flex-wrap">
-            <span id="book-tag" class="text-xs font-semibold px-2 py-0.5 rounded-full border bg-blue-100 text-blue-800 border-blue-200"></span>
-            <span id="today-tag" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">今天</span>
-            <span id="future-tag" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200">尚未到達</span>
+            <span id="book-tag" class="text-xs font-bold px-3 py-1 rounded-full" style="background:rgba(201,168,76,.2);color:#e8c97a;border:1px solid rgba(201,168,76,.4)"></span>
+            <span id="today-badge" class="hidden text-xs font-bold px-3 py-1 rounded-full" style="background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)">今天</span>
+            <span id="locked-badge" class="hidden text-xs font-bold px-3 py-1 rounded-full" style="background:rgba(255,255,255,.06);color:rgba(232,232,240,.4);border:1px solid rgba(255,255,255,.1)">🔒 尚未解鎖</span>
           </div>
-          <p id="day-meta" class="text-xs text-slate-400"></p>
-          <h2 id="passage" class="text-xl font-bold text-slate-800"></h2>
+          <p id="day-meta" class="text-xs" style="color:rgba(232,232,240,.45)"></p>
+          <h2 id="passage" class="text-2xl font-black text-white leading-tight"></h2>
         </div>
-        <span id="day-num" class="text-5xl font-black text-slate-100 leading-none select-none"></span>
+        <div id="day-num" class="text-6xl font-black leading-none select-none flex-shrink-0" style="color:rgba(201,168,76,.15)"></div>
       </div>
-      <div class="mt-3 bg-white/70 rounded-xl px-4 py-3 border border-slate-100">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">每日重點</p>
-        <p id="focus" class="text-slate-700 font-semibold leading-relaxed text-sm"></p>
+
+      <!-- Focus -->
+      <div class="mt-4 rounded-2xl px-4 py-3" style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2)">
+        <div class="section-label">每日重點</div>
+        <p id="focus" class="text-sm font-semibold leading-relaxed" style="color:#e8c97a"></p>
       </div>
+    </div>
+
+    <!-- Locked overlay -->
+    <div id="locked-panel" class="hidden px-5 py-10 text-center">
+      <div class="text-4xl mb-3">🔒</div>
+      <p class="font-bold text-white text-lg mb-1">尚未解鎖</p>
+      <p class="text-sm" style="color:rgba(232,232,240,.5)">這天的內容還未到達<br>請在當天回來閱讀</p>
     </div>
 
     <!-- Tabs -->
-    <div class="flex border-b border-slate-100 px-5">
-      <button id="tab-content" onclick="switchTab('content')"
-        class="py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-blue-500 text-blue-600 transition-colors">
-        真理導航 · 生活練習
-      </button>
-      <button id="tab-prayer" onclick="switchTab('prayer')"
-        class="py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">
-        今日禱告 · 金句
-      </button>
+    <div id="tabs-row" class="flex px-5 gap-6 border-b" style="border-color:rgba(255,255,255,.08)">
+      <button id="tab-content" class="tab-btn active" onclick="switchTab('content')">真理導航 · 生活練習</button>
+      <button id="tab-prayer" class="tab-btn" onclick="switchTab('prayer')">今日禱告 · 金句</button>
     </div>
 
-    <!-- Tab: content -->
-    <div id="panel-content" class="px-5 py-4 space-y-4">
+    <!-- Panel: content -->
+    <div id="panel-content" class="px-5 py-5 space-y-4">
       <div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">真理導航</p>
-        <p id="navigation" class="text-slate-600 text-sm leading-relaxed"></p>
+        <div class="section-label">真理導航</div>
+        <p id="navigation" class="text-sm leading-relaxed" style="color:rgba(232,232,240,.8)"></p>
       </div>
-      <div class="space-y-2">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">生活練習</p>
-        <div class="bg-blue-50 rounded-xl p-3 border border-blue-100">
-          <span class="text-xs font-bold text-blue-700">【愛神】</span>
-          <p id="practice-god" class="text-sm text-slate-700 mt-0.5 leading-relaxed"></p>
-        </div>
-        <div class="bg-rose-50 rounded-xl p-3 border border-rose-100">
-          <span class="text-xs font-bold text-rose-600">【愛人】</span>
-          <p id="practice-people" class="text-sm text-slate-700 mt-0.5 leading-relaxed"></p>
+      <div>
+        <div class="section-label">生活練習</div>
+        <div class="space-y-2">
+          <div class="practice-god">
+            <span class="text-xs font-black" style="color:#63b3ed">【愛神】</span>
+            <p id="practice-god" class="text-sm leading-relaxed mt-1" style="color:rgba(232,232,240,.8)"></p>
+          </div>
+          <div class="practice-people">
+            <span class="text-xs font-black" style="color:#fc8181">【愛人】</span>
+            <p id="practice-people" class="text-sm leading-relaxed mt-1" style="color:rgba(232,232,240,.8)"></p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Tab: prayer -->
-    <div id="panel-prayer" class="hidden px-5 py-4 space-y-4">
+    <!-- Panel: prayer -->
+    <div id="panel-prayer" class="hidden px-5 py-5 space-y-4">
       <div>
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">今日禱告</p>
-        <p id="prayer" class="text-slate-600 text-sm leading-relaxed italic"></p>
+        <div class="section-label">今日禱告</div>
+        <p id="prayer" class="text-sm leading-relaxed italic" style="color:rgba(232,232,240,.75)"></p>
       </div>
-      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200">
-        <p class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">今日金句</p>
-        <p id="verse" class="text-slate-800 font-semibold text-sm leading-relaxed"></p>
-        <p id="tags" class="text-amber-500 text-xs mt-2 font-medium"></p>
+      <div class="verse-card px-5 py-5">
+        <div class="section-label" style="color:rgba(201,168,76,.7)">今日金句</div>
+        <p id="verse" class="text-sm font-bold leading-relaxed text-white"></p>
+        <p id="tags" class="text-xs mt-3 gold-text opacity-60 font-medium"></p>
       </div>
     </div>
   </div>
 
-  <!-- Date selector -->
+  <!-- Date picker -->
   <div>
-    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-0.5">選擇日期</p>
-    <div id="date-grid" class="grid grid-cols-7 gap-1"></div>
-    <div class="flex items-center gap-4 mt-2 px-0.5">
-      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-emerald-100 border-emerald-300"></div><span class="text-[10px] text-slate-400">已完成</span></div>
-      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-blue-100 border-blue-300"></div><span class="text-[10px] text-slate-400">今天</span></div>
-      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-white border-slate-200"></div><span class="text-[10px] text-slate-400">未來</span></div>
+    <div class="section-label px-1">選擇日期</div>
+    <div id="date-grid" class="grid grid-cols-7 gap-1.5"></div>
+    <div class="flex items-center gap-5 mt-3 px-1">
+      <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4)"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">已完成</span></div>
+      <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(201,168,76,.25);border:1px solid #c9a84c"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">今天</span></div>
+      <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">未來 🔒</span></div>
     </div>
   </div>
 
-  <!-- Navigation -->
-  <div class="flex gap-2 pb-2">
-    <button id="btn-prev" onclick="navigate(-1)"
-      class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-30">
-      ← 上一天
-    </button>
-    <button id="btn-today" onclick="goToday()"
-      class="hidden px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 font-medium text-sm hover:bg-blue-100 transition-colors">
-      回今天
-    </button>
-    <button id="btn-next" onclick="navigate(1)"
-      class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-30">
-      下一天 →
-    </button>
+  <!-- Bottom navigation -->
+  <div class="flex gap-2 safe-bottom">
+    <button id="btn-prev" onclick="navigate(-1)" class="nav-btn">← 上一天</button>
+    <button id="btn-today" onclick="goToday()" class="today-btn hidden">回今天</button>
+    <button id="btn-next" onclick="navigate(1)" class="nav-btn">下一天 →</button>
   </div>
 
 </main>
-
-<footer class="text-center py-3 text-xs text-slate-300">台灣愛聖協會 · 2026 年七月讀經</footer>
 
 <script>
 const READINGS = [
@@ -165,111 +197,129 @@ const READINGS = [
   { date:"7/31", day:31, book:"腓利門書", passage:"腓利門書 1:1-25", focus:"福音突破階級屏障，在基督裡用愛修復破碎的關係。", navigation:"這卷短短的私人信件，展示了福音落地在人際關係中時最震撼的張力。保羅在獄中帶領了逃跑的奴隸阿尼西謀信主，隨後他寫信給奴隸主腓利門，懇求他不僅要饒恕阿尼西謀，更要「接納他如同親愛的弟兄」。在當時羅馬帝國階級森嚴、逃奴會被判死刑的背景下，這簡直是顛覆社會結構的要求。這讓我們看見，真正的基督教信仰不只是個人的修養，更是能在受損、背叛與破碎的社會關係中，帶來完全的和好與恢復。", practiceGod:"感謝神在我們還是得罪祂的「逃奴」時，就藉著耶穌接待我們。求神賜下天國的愛，來擴張自己饒恕他人的容量。", practicePeople:"思想在你目前的人際網絡中，是否有一個長久疏離、或曾傷害過你的「阿尼西謀」？主動在心中饒恕他，並在今天傳一則簡單平安的問候給對方，跨出和好的第一步。", prayer:"恩典和好的神，謝謝祢在我們還是罪惡逃奴時，就張開雙臂接納我們成為親愛的兒女。求祢除去我心中深藏的怨恨高牆，賜我突破階級與傷害的愛，主動去饒恕、修復那段受損的關係，讓生命重歸和好。阿們。", verse:"「他不再是奴僕，乃是高過奴僕，是親愛的兄弟。」（腓利門書 1:16）", tags:"#恩典和好 #不再是奴僕 #打破高牆" },
 ];
 
-const BOOK_STYLE = {
-  "羅馬書":  { tag:"bg-blue-100 text-blue-800 border-blue-200",   border:"border-l-blue-400",   hdr:"from-blue-50" },
-  "加拉太書":{ tag:"bg-purple-100 text-purple-800 border-purple-200", border:"border-l-purple-400", hdr:"from-purple-50" },
-  "歌羅西書":{ tag:"bg-green-100 text-green-800 border-green-200",  border:"border-l-green-400",  hdr:"from-green-50" },
-  "腓立比書":{ tag:"bg-amber-100 text-amber-800 border-amber-200",  border:"border-l-amber-400",  hdr:"from-amber-50" },
-  "腓利門書":{ tag:"bg-rose-100 text-rose-800 border-rose-200",    border:"border-l-rose-400",   hdr:"from-rose-50" },
-};
-
 let currentIndex = 0;
 let currentTab = 'content';
 
 function getTodayIndex() {
   const now = new Date();
-  if (now.getMonth() + 1 === 7 && now.getDate() >= 1 && now.getDate() <= 31) return now.getDate() - 1;
-  return -1;
+  const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+  // Before July 2026 → nothing unlocked yet
+  if (y < 2026 || (y === 2026 && m < 7)) return -2;
+  // After July 2026 → all unlocked
+  if (y > 2026 || (y === 2026 && m > 7)) return 30;
+  // During July 2026 → unlock up to today
+  return d - 1;
 }
 
 const todayIndex = getTodayIndex();
 
+// -2 = before July (nothing available), 0-30 = available up to that index, 30 = all available
+function isAvailable(i) {
+  if (todayIndex === -2) return false;
+  return i <= todayIndex;
+}
+
 function render() {
   const r = READINGS[currentIndex];
-  const s = BOOK_STYLE[r.book];
+  const available = isAvailable(currentIndex);
   const isToday = currentIndex === todayIndex;
-  const isFuture = todayIndex >= 0 && currentIndex > todayIndex;
-  const completed = todayIndex >= 0 ? todayIndex + 1 : 0;
+  const completed = todayIndex >= 0 ? todayIndex + 1 : 31;
 
   // Header progress
   document.getElementById('hdr-done').textContent = completed;
-  document.getElementById('progress-bar').style.width = Math.round(completed / 31 * 100) + '%';
+  const pct = Math.round(completed / 31 * 100);
+  const circumference = 2 * Math.PI * 15.9;
+  document.getElementById('progress-ring').setAttribute('stroke-dasharray', `${circumference * pct / 100} ${circumference}`);
 
-  // Card border & header bg
+  // Card re-animate
   const card = document.getElementById('main-card');
-  card.className = `bg-white rounded-2xl shadow-md border-l-4 ${s.border} overflow-hidden fade-in`;
-  // re-trigger animation
-  card.classList.remove('fade-in');
-  void card.offsetWidth;
-  card.classList.add('fade-in');
+  card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
 
-  document.getElementById('card-header').className = `bg-gradient-to-r ${s.hdr} to-white px-5 pt-5 pb-4`;
-  document.getElementById('book-tag').className = `text-xs font-semibold px-2 py-0.5 rounded-full border ${s.tag}`;
+  // Book tag & badges
   document.getElementById('book-tag').textContent = r.book;
-  document.getElementById('today-tag').classList.toggle('hidden', !isToday);
-  document.getElementById('future-tag').classList.toggle('hidden', !isFuture);
+  document.getElementById('today-badge').classList.toggle('hidden', !isToday);
+  document.getElementById('locked-badge').classList.toggle('hidden', available);
   document.getElementById('day-meta').textContent = `第 ${r.day} 天 · 2026 年 ${r.date}`;
   document.getElementById('passage').textContent = r.passage;
   document.getElementById('day-num').textContent = r.day;
-  document.getElementById('focus').textContent = r.focus;
-  document.getElementById('navigation').textContent = r.navigation;
-  document.getElementById('practice-god').textContent = r.practiceGod;
-  document.getElementById('practice-people').textContent = r.practicePeople;
-  document.getElementById('prayer').textContent = r.prayer;
-  document.getElementById('verse').textContent = r.verse;
-  document.getElementById('tags').textContent = r.tags;
+  document.getElementById('focus').textContent = available ? r.focus : '這天的內容將在當天解鎖';
 
-  // Buttons
+  // Show/hide content vs locked
+  document.getElementById('tabs-row').classList.toggle('hidden', !available);
+  document.getElementById('panel-content').classList.toggle('hidden', !available || currentTab !== 'content');
+  document.getElementById('panel-prayer').classList.toggle('hidden', !available || currentTab !== 'prayer');
+  document.getElementById('locked-panel').classList.toggle('hidden', available);
+
+  if (available) {
+    document.getElementById('navigation').textContent = r.navigation;
+    document.getElementById('practice-god').textContent = r.practiceGod;
+    document.getElementById('practice-people').textContent = r.practicePeople;
+    document.getElementById('prayer').textContent = r.prayer;
+    document.getElementById('verse').textContent = r.verse;
+    document.getElementById('tags').textContent = r.tags;
+  }
+
+  // Bottom nav buttons
   document.getElementById('btn-prev').disabled = currentIndex === 0;
-  document.getElementById('btn-next').disabled = currentIndex === 30;
-  document.getElementById('btn-today').classList.toggle('hidden', todayIndex < 0 || currentIndex === todayIndex);
+  // "下一天" only enabled if next day is available
+  document.getElementById('btn-next').disabled = currentIndex >= 30 || !isAvailable(currentIndex + 1);
+  document.getElementById('btn-today').classList.toggle('hidden', todayIndex < 0 || todayIndex === -2 || currentIndex === todayIndex);
 
   // Date grid
   const grid = document.getElementById('date-grid');
   grid.innerHTML = '';
   READINGS.forEach((rd, i) => {
-    const past = todayIndex >= 0 && i < todayIndex;
-    const today = i === todayIndex;
+    const avail = isAvailable(i);
+    const isT = i === todayIndex;
+    const isPast = todayIndex >= 0 && i < todayIndex;
     const sel = i === currentIndex;
-    let cls = 'rounded-lg p-1 text-center text-xs font-semibold cursor-pointer transition-all border select-none ';
-    if (sel)        cls += 'bg-blue-600 text-white border-blue-600 shadow scale-105';
-    else if (today) cls += 'bg-blue-100 text-blue-700 border-blue-300';
-    else if (past)  cls += 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
-    else            cls += 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50';
+
     const btn = document.createElement('button');
-    btn.className = cls;
-    btn.innerHTML = `<div style="font-size:9px;opacity:.6">${rd.date.replace('7/','')}</div><div style="font-size:11px">${rd.day}</div>${past && !sel ? '<div style="font-size:8px;color:#10b981">✓</div>' : ''}`;
-    btn.onclick = () => { currentIndex = i; currentTab = 'content'; render(); };
+    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isPast ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
+    btn.style.minHeight = '42px';
+    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('7/','')}</div><div style="font-size:12px">${rd.day}</div>${isPast && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
+    if (avail) {
+      btn.onclick = () => { currentIndex = i; currentTab = 'content'; render(); };
+    } else {
+      btn.title = '尚未解鎖';
+    }
     grid.appendChild(btn);
   });
 
-  // Tab state
-  switchTab(currentTab, false);
+  switchTabUI(currentTab);
 }
 
-function switchTab(tab, doRender = true) {
+function switchTab(tab) {
+  if (!isAvailable(currentIndex)) return;
   currentTab = tab;
   document.getElementById('panel-content').classList.toggle('hidden', tab !== 'content');
   document.getElementById('panel-prayer').classList.toggle('hidden', tab !== 'prayer');
+  switchTabUI(tab);
+}
+
+function switchTabUI(tab) {
   ['content','prayer'].forEach(t => {
     const btn = document.getElementById('tab-' + t);
-    if (t === tab) { btn.className = 'py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-blue-500 text-blue-600 transition-colors'; }
-    else           { btn.className = 'py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors'; }
+    btn.classList.toggle('active', t === tab);
   });
 }
 
 function navigate(dir) {
-  currentIndex = Math.max(0, Math.min(30, currentIndex + dir));
+  const next = currentIndex + dir;
+  if (next < 0 || next > 30) return;
+  if (!isAvailable(next)) return;
+  currentIndex = next;
   currentTab = 'content';
   render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function goToday() {
-  if (todayIndex >= 0) { currentIndex = todayIndex; currentTab = 'content'; render(); }
+  if (todayIndex >= 0) { currentIndex = todayIndex; currentTab = 'content'; render(); window.scrollTo({ top:0, behavior:'smooth' }); }
 }
 
 // Init
-currentIndex = todayIndex >= 0 ? todayIndex : 0;
+currentIndex = (todayIndex >= 0 && todayIndex <= 30) ? todayIndex : 0;
 render();
 </script>
 </body>
