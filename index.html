@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>七月讀經計畫 | 台灣愛聖協會</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col font-sans">
+
+<!-- Header -->
+<header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div>
+      <h1 class="text-base font-bold text-slate-800">七月讀經計畫</h1>
+      <p class="text-xs text-slate-400">保羅書信 31 天靈修之旅</p>
+    </div>
+    <div class="text-right">
+      <div class="text-xl font-bold text-blue-600">
+        <span id="hdr-done">0</span><span class="text-xs font-normal text-slate-400"> / 31 天</span>
+      </div>
+      <div class="w-20 h-1.5 bg-slate-200 rounded-full mt-1 ml-auto">
+        <div id="progress-bar" class="h-1.5 bg-blue-500 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 max-w-2xl mx-auto w-full px-4 py-5 space-y-4">
+
+  <!-- Main card -->
+  <div id="main-card" class="bg-white rounded-2xl shadow-md border-l-4 border-blue-400 overflow-hidden fade-in">
+    <!-- Card header -->
+    <div id="card-header" class="bg-gradient-to-r from-blue-50 to-white px-5 pt-5 pb-4">
+      <div class="flex items-start justify-between">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="book-tag" class="text-xs font-semibold px-2 py-0.5 rounded-full border bg-blue-100 text-blue-800 border-blue-200"></span>
+            <span id="today-tag" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">今天</span>
+            <span id="future-tag" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 border border-slate-200">尚未到達</span>
+          </div>
+          <p id="day-meta" class="text-xs text-slate-400"></p>
+          <h2 id="passage" class="text-xl font-bold text-slate-800"></h2>
+        </div>
+        <span id="day-num" class="text-5xl font-black text-slate-100 leading-none select-none"></span>
+      </div>
+      <div class="mt-3 bg-white/70 rounded-xl px-4 py-3 border border-slate-100">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">每日重點</p>
+        <p id="focus" class="text-slate-700 font-semibold leading-relaxed text-sm"></p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-slate-100 px-5">
+      <button id="tab-content" onclick="switchTab('content')"
+        class="py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-blue-500 text-blue-600 transition-colors">
+        真理導航 · 生活練習
+      </button>
+      <button id="tab-prayer" onclick="switchTab('prayer')"
+        class="py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors">
+        今日禱告 · 金句
+      </button>
+    </div>
+
+    <!-- Tab: content -->
+    <div id="panel-content" class="px-5 py-4 space-y-4">
+      <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">真理導航</p>
+        <p id="navigation" class="text-slate-600 text-sm leading-relaxed"></p>
+      </div>
+      <div class="space-y-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">生活練習</p>
+        <div class="bg-blue-50 rounded-xl p-3 border border-blue-100">
+          <span class="text-xs font-bold text-blue-700">【愛神】</span>
+          <p id="practice-god" class="text-sm text-slate-700 mt-0.5 leading-relaxed"></p>
+        </div>
+        <div class="bg-rose-50 rounded-xl p-3 border border-rose-100">
+          <span class="text-xs font-bold text-rose-600">【愛人】</span>
+          <p id="practice-people" class="text-sm text-slate-700 mt-0.5 leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: prayer -->
+    <div id="panel-prayer" class="hidden px-5 py-4 space-y-4">
+      <div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">今日禱告</p>
+        <p id="prayer" class="text-slate-600 text-sm leading-relaxed italic"></p>
+      </div>
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200">
+        <p class="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">今日金句</p>
+        <p id="verse" class="text-slate-800 font-semibold text-sm leading-relaxed"></p>
+        <p id="tags" class="text-amber-500 text-xs mt-2 font-medium"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date selector -->
+  <div>
+    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-0.5">選擇日期</p>
+    <div id="date-grid" class="grid grid-cols-7 gap-1"></div>
+    <div class="flex items-center gap-4 mt-2 px-0.5">
+      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-emerald-100 border-emerald-300"></div><span class="text-[10px] text-slate-400">已完成</span></div>
+      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-blue-100 border-blue-300"></div><span class="text-[10px] text-slate-400">今天</span></div>
+      <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 rounded border bg-white border-slate-200"></div><span class="text-[10px] text-slate-400">未來</span></div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="flex gap-2 pb-2">
+    <button id="btn-prev" onclick="navigate(-1)"
+      class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-30">
+      ← 上一天
+    </button>
+    <button id="btn-today" onclick="goToday()"
+      class="hidden px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 font-medium text-sm hover:bg-blue-100 transition-colors">
+      回今天
+    </button>
+    <button id="btn-next" onclick="navigate(1)"
+      class="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors disabled:opacity-30">
+      下一天 →
+    </button>
+  </div>
+
+</main>
+
+<footer class="text-center py-3 text-xs text-slate-300">台灣愛聖協會 · 2026 年七月讀經</footer>
+
+<script>
+const READINGS = [
+  { date:"7/1",  day:1,  book:"羅馬書",  passage:"羅馬書 1:1-32",  focus:"福音是神的大能，能徹底翻轉你的人生底牌。", navigation:"保羅一開頭就將福音定義為一種顛覆性的力量。現代人常在各種評鑑、KPI中尋找自我認同，但福音告訴我們，人的根本困境不在於技巧不足，而是與生命的源頭斷了連結，導致生活秩序的崩潰。當我們試圖用受造物代替造物主時，內心就會陷入無底的焦慮。福音不是一套修身養性的道德規範，而是上帝主動介入歷史、更新人類命運的「最強外掛」，只要你願意相信，生命就能在最絕望處重新開機。", practiceGod:"在今天找一個安靜的5分鐘，向神承認自己常想靠自己掌控一切的驕傲，宣告祂才是你生命的主宰。", practicePeople:"留意身邊一位正處於高度焦慮或低潮的朋友，不說教，單純傳一則訊息表達關心並為他祝福。", prayer:"主啊，我承認常想用自己的好表現來證明自己，導致內心充滿焦慮。謝謝祢用福音的大能拯救我，今天我宣告祢是我生命的主，求祢的大能翻轉我的底牌，讓我靠著祢的愛活出新生的盼望。阿們。", verse:"「我不以福音為恥；這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）", tags:"#大能 #破曉 #核心重啟" },
+  { date:"7/2",  day:2,  book:"羅馬書",  passage:"羅馬書 2:1-29",  focus:"信仰不是外在的標籤，而是內心深處的誠實。", navigation:"保羅撕下了宗教人士的虛假面具。在社群媒體發達的今天，我們太擅長「打造精美的人設」，甚至在信仰上也會用流水線式的宗教行為來包裝自己，並以此評斷他人。然而，神看重的從來不是外在的儀式或完美的宗教履歷，而是那顆在無人看見時依然對祂誠實的「心割禮」。真正的信仰會讓我們放下定罪別人的放大鏡，拿起省察自己的鏡子，在神的聖潔光照中，看見自己對恩典的真實渴望。", practiceGod:"寫下一件你隱藏很久、不敢面對的軟弱，在禱告中赤露敞開地交給神，體驗祂不控訴的接納。", practicePeople:"今天刻意不對任何人的行為下主觀評論，當你想批評人時，轉為在心裡為對方的需要默默代禱。", prayer:"阿爸神，求祢赦免我常在人前包裝自己、在人後論斷他人的虛偽。求聖靈今天為我的心行割禮，讓我脫去偽裝，單單在祢面前赤露敞開，得著最真實的恩典與接納。阿們。", verse:"「因為外面作猶太人的，不是真猶太人……惟有裡面作的，才是真猶太人。」（羅馬書 2:28-29）", tags:"#鏡子 #真實 #心靈祭壇" },
+  { date:"7/3",  day:3,  book:"羅馬書",  passage:"羅馬書 3:1-31",  focus:"在絕望的底線前，神的恩典為你無條件買單。", navigation:"這章經文揭示了人類最核心的財務危機：罪的破產。無論道德高尚還是放蕩不羈，在神的絕對公義面前，所有人都拿不出及格的生命成績單。但最美妙的轉折就在於「如今」——耶穌基督用祂的生命作為贖價，在十字架上為我們付清了所有債務。這就是「因信稱義」，它是免費的，卻是極其昂貴的代價換來的。現代人總覺得天下沒有白吃的午餐，但上帝偏偏要把這份宇宙間最珍貴的救恩，白白送給願意伸出信心之手接受的你。", practiceGod:"大聲宣告自己已經因信稱義，不再受控告，並用讚美感謝耶穌為你承擔了一切的罪責。", practicePeople:"在人際關係中實踐一次「免債」，主動原諒一位曾冒犯你、或在言語上對不起你的同事或家人。", prayer:"主耶穌，謝謝祢在十字架上為我那破產的生命全然買單。當我面對自責與控告時，求祢讓我有信心抓住「因信稱義」的白白恩典。也求祢賜我寬廣的心，今天能主動原諒冒犯我的人。阿們。", verse:"「如今卻蒙神的恩典，因基督耶穌的救贖，就白白地稱義。」（羅馬書 3:24）", tags:"#代價 #白白得來 #十字架" },
+  { date:"7/4",  day:4,  book:"羅馬書",  passage:"羅馬書 4:1-25",  focus:"信心不是看自己的環境，而是看應許背後的那位神。", navigation:"保羅搬出了信心之父亞伯拉罕的故事。亞伯拉罕在百歲身體如同已死、撒拉生育斷絕的時候，依然選擇相信神的應許。這對活在凡事看數據、看KPI、看勝率的現代人是一個極大的挑戰。信心不是盲目的樂觀，也不是一種心理建設，而是把生命的錨定在神的品格上——祂是那位置於死地而能叫人復活、使無變為有的神。當你的銀行帳戶、健康或關係陷入「已死」的狀態時，信心是唯一的對接管道。", practiceGod:"找出一個你覺得目前最不可能改變的困境，向神宣告：即使環境看來絕望，我依然選擇相信祢的應許。", practicePeople:"尋找一位正因現實環境受挫而失去信心的肢體，用神的話語和正面的肯定去激勵他重新站起來。", prayer:"慈愛的神，祢是那使無變為有、叫死人復活的主。當我的環境看來一片荒涼死寂時，求祢挪去我的小信，讓我把靈魂的錨緊緊扣在祢不落空的應許上，用信心看見祢的作為。阿們。", verse:"「亞伯拉罕信神，這就算為他的義。」（羅馬書 4:3）", tags:"#星空應許 #無中生有 #錨" },
+  { date:"7/5",  day:5,  book:"羅馬書",  passage:"羅馬書 5:1-21",  focus:"苦難是靈性肌肉的重訓，而恩典是永不乾涸的泉源。", navigation:"既然因信稱義，我們就與神和好了，但這並不意味著人生從此一帆風順。保羅大膽地指出，連苦難都可以成為我們歡喜的理由，因為苦難能鍛鍊出忍耐、老練與盼望。這就像是靈性的重訓，每一次的壓迫都在擴張我們生命承載恩典的容量。更重要的是，神的愛藉著聖靈已經澆灌在我們心裡。無論世界的風浪多大，基督在我們還作罪人時就為我們死，這份沉甸甸的愛，就是我們在風雨中絕不搖擺的鐵證。", practiceGod:"為你目前生命中正經歷的一個「微苦難」或挑戰向神獻上感謝，求聖靈將祂的愛再次澆灌下來。", practicePeople:"今天預備一份小點心或一杯咖啡，送給身邊正承擔極大工作或生活壓力的人，為他打氣。", prayer:"主啊，謝謝祢在風雨中作我最穩固的盾牌。求聖靈將祢源源不絕的愛再次澆灌在我的心裡，好讓目前的苦難挑戰成為我靈性重訓的養分，磨練出不絕望的盼望，並有餘力關懷受壓的人。阿們。", verse:"「惟有基督在我們還作罪人的時候為我們死，神的愛就在此向我們顯明了。」（羅馬書 5:8）", tags:"#重訓 #澆灌 #暴風雨中的錨" },
+  { date:"7/6",  day:6,  book:"羅馬書",  passage:"羅馬書 6:1-23",  focus:"你的舊密碼已過期，今天起換上自由的新身分。", navigation:"很多人誤以為恩典可以當作放縱的通行證，但保羅強調，當我們受洗歸入基督時，那滿身惡習、被罪捆綁的「舊我」就已經宣告死亡並埋葬了。現在活著的，是一個與基督一同復活的「新我」。現代人常被過去的壞習慣、成癮或原生家庭的陰影緊緊扣留，但這章經文是你的靈性自由宣言。罪不再是你的老闆，你不需要再聽從它的指令。你可以主動把自己的眼、耳、口、手當作公義的器具獻給神，活出真正的主權獨立。", practiceGod:"做一個象徵性的動作（如握拳再放開），宣告某個捆綁你很久的壞習慣已與基督同死，今天你要為神而活。", practicePeople:"在與家人的互動中，刻意克制住平常容易脫口而出的情緒性壞脾氣，改用溫柔的言語回應。", prayer:"親愛的主，謝謝祢為我撕下了過去被罪控告的標籤。我宣告過去的惡習與創傷已與祢同埋葬。今天，我將我的身體與口舌獻上作公義的器具，求祢引導我用溫柔的言語，活出自由的新生命。阿們。", verse:"「因為知道我們的舊人和他同釘十字架，使罪身滅絕，叫我們不再作罪的奴僕。」（羅馬書 6:6）", tags:"#斷開捆綁 #新生 #自由" },
+  { date:"7/7",  day:7,  book:"羅馬書",  passage:"羅馬書 7:1-25",  focus:"承認靠自己會搞砸，正是經歷基督拯救的起點。", navigation:"這一章保羅寫下了人類內心深處最真實的掙扎：「我所願意的善，我反不做；我所不願意的惡，我倒去做。」這種嚴重的內耗與無力感，每個現代人都感同身受——我們知道要自律、要溫柔、要正向，卻往往在現實中崩潰。保羅指出，單靠律法與意志力是無法勝過人性中的殘餘引力的。但這段看似絕望的呼喊，最終卻導向了驚天動地的讚美：「感謝神！靠著我們的主耶穌基督就能脫離了。」認輸，才是贏的開始。", practiceGod:"在禱告中對神承認：「主啊，這件事我靠自己真的辦不到，我需要祢。」將控制權完全交託。", practicePeople:"當看到別人的軟弱或搞砸事情時，收起批判，因為我們都在同樣的掙扎中，試著用體恤的心陪伴他。", prayer:"主啊，我真誠地面對自己內心的拉扯與內耗，承認單靠自己的意志力一定會搞砸。我願意放手，將生命的方向盤交託給祢，謝謝祢在我無力時作我的拯救，用祢的恩典帶我脫離掙扎。阿們。", verse:"「我真是苦啊！誰能救我脫離這取死的身體呢？感謝神，靠著我們的主耶穌基督就能脫離了。」（羅馬書 7:24-25）", tags:"#掙扎 #放手 #拯救的光" },
+  { date:"7/8",  day:8,  book:"羅馬書",  passage:"羅馬書 8:1-39",  focus:"在聖靈的護航裡，沒有任何事物能切斷神對你的愛。", navigation:"羅馬書第八章是全書的高峰。保羅宣告那些在基督裡的，如今「就不定罪了」。現代人活在充滿定罪感與不安全感的環境中，隨時害怕被拋棄。但保羅為我們拉開了一個宇宙級的保護網：聖靈在我們心裡深切代求，並且我們已經得著了兒子的名分。即使受苦，這苦楚與將來的榮耀相比也微不足道。最後，那串歷史性的宣告——無論是死、是生、是現在的事、是將來的事，都不能叫我們與神的愛隔絕。這是最完美的終極安全感。", practiceGod:"用3分鐘默想神對你那份「不離不棄」的愛，並在心中對神說：「謝謝祢，在祢裡面我全然安全。」", practicePeople:"給一位正經歷極大挫折、覺得自己被神或被世界拋棄的肢體一個深沉的擁抱，或者為他親手寫一張鼓勵的卡片。", prayer:"阿爸天父，謝謝祢給了我合法的兒女名分，讓我在聖靈的代求中得著全然的安全感。我宣告，世上沒有任何艱難能將我與祢的愛隔絕，求祢用這份無敵的愛，安慰我身邊正在受挫的朋友。阿們。", verse:"「誰能使我們與基督的愛隔絕呢？難道是患難嗎？是困苦嗎？是逼迫嗎？……」（羅馬書 8:35）", tags:"#無敵的愛 #護航 #金光護罩" },
+  { date:"7/9",  day:9,  book:"羅馬書",  passage:"羅馬書 9:1-33",  focus:"上帝擁有主權，祂的揀選絕不落空。", navigation:"第九章探討了深奧的「神聖主權與揀選」。現代文化崇尚個人主義與絕對掌控，我們總希望上帝按照我們的藍圖和劇本來演。但保羅提醒我們，窯匠難道沒有權柄用泥塊做出不同的器皿嗎？上帝的恩典與憐憫不受人的意志所左右，祂的計劃有更高的維度。這不是要讓我們感到宿命，而是要讓我們在驚嘆中放下妄想掌控明天的重擔，安息在祂完全公義且慈愛的至高主權中。", practiceGod:"學習在一個你一直想要神「照你意思行」的事情上放手，禱告宣告：「主啊，祢是窯匠，我是泥土，願祢的旨意成就。」", practicePeople:"在小組或群體中，刻意去接納並讚美一位「與你風格完全不同」的同工，欣賞神在每個人身上獨特的塑造。", prayer:"至高的主，祢是神聖的窯匠，我是被祢細心揉捏的泥土。我承認我常妄想掌控自己的明天，今天我選擇放手，臣服於祢美善的主權之下。求祢挪去我的抗拒，讓我安息在祢絕不落空的計劃裡。阿們。", verse:"「據此看來，這不在乎那願意的，也不在乎那奔跑的，只在乎發憐憫的神。」（羅馬書 9:16）", tags:"#窯匠的手 #主權 #星際軌道" },
+  { date:"7/10", day:10, book:"羅馬書",  passage:"羅馬書 10:1-21", focus:"相信並宣告，把生命最好的消息分享出去。", navigation:"保羅在這裡強調了拯救的簡單與迫切——「心裡相信，口裡承認」。現代人常常把事情複雜化，以為要修行到某個程度才能得救，但神的道其實離我們不遠，就在我們口裡，在我們心裡。然而，保羅也提出了一個關鍵的行動問題：如果沒有人傳，人怎麼能聽見呢？在這個充斥著壞消息、八卦與對立的網路時代，我們被呼召成為那個帶領人遇見平安、傳遞福音好消息的「美善雙腳」。", practiceGod:"在早晨醒來時，大聲口裡承認耶穌是你今天各樣決定（職場、家庭）的主，讓話語宣告帶來屬靈權柄。", practicePeople:"預備一個簡單的信仰見證（大約2分鐘），並在心裡設定一個目標，在接下來這週找機會與一位未信的朋友分享。", prayer:"主耶穌，謝謝祢讓拯救的恩典如此靠近。今天我口裡承認、心裡相信祢是我生命中每個決定的主。求祢賜我佳美的腳蹤，挪去我的害羞與懼怕，讓我的生命成為向身邊人傳遞真平安的好消息擴音器。阿們。", verse:"「報福音、傳喜信的人，他們的腳蹤何等佳美！」（羅馬書 10:15）", tags:"#佳美腳蹤 #傳遞好消息 #心靈擴音器" },
+  { date:"7/11", day:11, book:"羅馬書",  passage:"羅馬書 11:1-36", focus:"神的智慧深不可測，萬物最終都歸於祂。", navigation:"本章展示了救贖歷史的宏大拼圖。保羅解釋了為什麼以色列人看似跌倒，卻成了外邦人得救的契機，而最終神仍要憐憫眾人。這讓我們看見，上帝能把歷史的殘局、甚至人類的失敗，編織進祂完美的拯救計劃中。現代人在看新聞或面對混亂的世界局勢時常感到絕望，但當我們拉高視野，就會像保羅一樣發出由衷的讚嘆：神的智慧何其高深！萬有都是本於祂、倚靠祂、歸於祂。", practiceGod:"讀完經文後，不求索取，單純用保羅在最後的頌讚（33-36節）作為你對神深不可測之智慧的敬拜。", practicePeople:"面對教會或職場中看似完全「不可救藥」或與神對立的人，不要放棄，持續用信心在禱告中為他的翻轉守望。", prayer:"萬有的主宰，祢的智慧何其高深，祢的判斷深不可測！當我看著混亂的世界或殘破的局勢感到絕望時，求祢拉高我的屬靈視野，看見萬有最終都歸於祢。我要用讚美來代替擔憂，全心倚靠祢。阿們。", verse:"「深哉，神豐富的智慧和知識！他的判斷何其難測！他的蹤跡何其難尋！」（羅馬書 11:33）", tags:"#深不可測 #宇宙拼圖 #全景視野" },
+  { date:"7/12", day:12, book:"羅馬書",  passage:"羅馬書 12:1-21", focus:"獻上生活作為最酷的祭物，用良善顛覆世界。", navigation:"羅馬書從這一章開始轉入精彩的生活實踐。保羅呼籲我們將「身體獻上當作活祭」。現代文化不斷給我們洗腦，要我們符合這個世界的模子（隨波逐流），但真正的敬拜不是主日唱幾首歌，而是在週一到週六的職場與生活中，心意更新而變化。這章也給出了極度具體的社群守則：愛人不可虛假、與喜樂的人同樂、與哀哭的人同哭，甚至不自己伸冤，而是用炭火般的良善去感化仇敵。", practiceGod:"在出門前禱告，將自己的雙眼、雙手和舌頭奉獻給神，作為今天在職場/學校中服事祂的聖潔祭物。", practicePeople:"刻意尋找一個你平常不太對盤或曾得罪你的人，在今天找機會讚美他的一項優點，或者主動協助他的工作。", prayer:"親愛的主，我不願再被這個世界的世俗模子給強行塑造。今天我將我的全人、我的職場生活獻上作為活祭。求聖靈更新我的思維，讓我能敏銳他人的哀哭與喜樂，以源源不絕的良善戰勝一切惡念。阿們。", verse:"「不要效法這個世界，只要心意更新而變化，叫你們察驗何為神的善良、純全、可喜悅的旨意。」（羅馬書 12:2）", tags:"#活祭 #心意更新 #逆流而上" },
+  { date:"7/13", day:13, book:"羅馬書",  passage:"羅馬書 13:1-14", focus:"在黑暗的世代中，披戴耶穌活出清晨的光彩。", navigation:"本章探討了基督徒與社會權柄的關係，以及日常道德。保羅提醒我們，在地上要作遵紀守法、按時納稅的好公民，因為一切權柄出於神。但更扎心的是他對時間的敏感度：黑夜已深，白晝將近！現代社會充滿了暗昧的行為（放縱、嫉妒、紛爭），許多人過著黑白顛倒、靈性昏睡的生活。保羅呼籲我們該是「睡醒的時候了」，要脫去暗昧的行為，直接把耶穌基督當作外衣「披戴」在身上，讓你的日常行為經得起陽光的檢視。", practiceGod:"檢查自己一整天的時間分配，求聖靈光照是否有任何沉迷於社群或虛浮娛樂的「靈性昏睡」狀態，並做出調整。", practicePeople:"實踐「凡事都不可虧欠人，惟有彼此相愛要常以為虧欠」，今天主動結清一筆拖延的款項或人情債。", prayer:"主耶穌，黑夜已深，求祢喚醒我昏睡的靈魂。今天我要脫去暗昧懶散的行為，將祢當作光明的衣袍重新披戴在身上。讓我的行事為人誠實端正，在相愛中絕不虧欠任何人，活出清晨般的生命光彩。阿們。", verse:"「黑夜已深，白晝將近；我們就當脫去暗昧的行為，帶上光明的兵器。」（羅馬書 13:12）", tags:"#黎明防線 #披戴基督 #晨光" },
+  { date:"7/14", day:14, book:"羅馬書",  passage:"羅馬書 14:1-23", focus:"接納不同的特質，不要讓你的自由成為別人的絆腳石。", navigation:"保羅處理了教會內部因為吃肉、守日等相對教義引發的內耗。在現代教會或小組中，我們也常因為政治立場、教養觀念或敬拜風格的不同而彼此論斷。保羅提出了一個偉大的神國原則：神的國不在於吃喝，而在於聖靈裡的公義、和平與喜樂。你有強壯的信心和自由很好，但更偉大的成熟是願意為了「不絆倒軟弱的肢體」而主動限制自己的自由。我們不是為了對錯而活，而是為了建造彼此。", practiceGod:"在內心深處向神交託：不再作別人的審判官，因為每個人最終都是向神獨自交帳，還給神絕對的審判權。", practicePeople:"今天在聚會或聊天中，刻意避開容易引發爭論的敏感話題，專注於彼此生命的建造與鼓勵。", prayer:"神國的主，求祢赦免我常想當別人的審判官。提醒我神的國不在於外在教條的對錯，而是在於聖靈中的公義與和平。賜我包容的胸懷，甘願為了不絆倒弟兄姊妹而限制自己的自由，專注建造群體。阿們。", verse:"「因為神的國不在乎吃喝，只在乎公義、和平，並聖靈中的喜樂。」（羅馬書 14:17）", tags:"#神國拼圖 #和平之子 #包容的胸懷" },
+  { date:"7/15", day:15, book:"羅馬書",  passage:"羅馬書 15:1-33", focus:"擔當別人的軟弱，同心合意唱出信仰的交響樂。", navigation:"保羅在這章提出了效法基督的極致榜樣：不求自己的喜悅。堅固的人應當擔當不堅固人的軟弱。這與現代社會強調「利己主義」、「我自己好就好」的風氣完全背道而馳。教會就像是一個交響樂團，如果人人都只吹奏自己的主旋律，只會帶來刺耳的噪音；但當我們彼此接納、互相補位時，就能同心合意地用一個聲音榮耀上帝。", practiceGod:"禱告求神賜下「忍耐與安慰」，使你在面對教會中比較難相處的肢體時，有從神而來的力量堅持下去。", practicePeople:"主動去關心、協助小組或教會中一位公認較為軟弱、需要被照顧的肢體，用實際行動承擔他的重擔。", prayer:"賜忍耐與安慰的神，求祢賜給我們同心合意的心。效法耶穌不求自己喜悅的榜樣，讓我有力量主動擔當軟弱肢體的重擔。願我們在群體中放下個人的尖銳，用彼此接納的和聲，交織出榮耀祢的生命交響樂。阿們。", verse:"「但願賜忍耐安慰的神叫你們彼此同心，效法基督耶穌，一心一口榮耀神。」（羅馬書 15:5-6）", tags:"#交響樂 #彼此接納 #同心合意" },
+  { date:"7/16", day:16, book:"羅馬書",  passage:"羅馬書 16:1-27", focus:"在同工的感謝名單中，看見默默奉獻的偉大。", navigation:"羅馬書的結尾看似是一串枯燥的問安名單，但只要仔細閱讀，就會發現這是一幅充滿溫度的「天國英雄榜」。保羅提到了女執事非比、同甘共苦的百基拉和亞居拉，以及許多默默無聞卻在主裡勞苦的人。現代人習慣追逐鎂光燈與C位，但神的國度是由無數個在台下默默奉獻、接待、代禱的普通人撐起來的。每個人在神眼中都有名字，都是不可或缺的策略夥伴。", practiceGod:"為了你在信仰路上曾遇過的屬靈長輩、同工向神獻上感謝，謝謝神透過這群人編織了你的生命。", practicePeople:"在今天寫一封感謝的訊息，傳給教會中一位默默服事（如音控、招待、清潔或行政）的同工，表達你的看見與謝意。", prayer:"全智的神，謝謝祢在天國名冊上記下每個默默奉獻的名字。我為著身邊那些甘心站在台下、低調服事的同工向祢獻上由衷的感謝。求祢親自堅固他們的腳步，也讓我成為一個懂得感恩、樂意補位的夥伴。阿們。", verse:"「願榮耀，因耶穌基督，歸與獨一全智的神，直到永遠。阿們！」（羅馬書 16:27）", tags:"#無名英雄 #天國名冊 #永恆榮耀" },
+  { date:"7/17", day:17, book:"加拉太書", passage:"加拉太書 1:1-24", focus:"堅守純正的福音，拒絕討好世界的山寨信仰。", navigation:"歡迎來到加拉太書！這是一卷保羅帶著神聖憤怒寫下的書信，因為加拉太教會正被「山寨版福音」給污染，試圖在恩典之外加上律法的包袱。保羅非常嚴厲地宣告：如果有人傳別的福音，他就該受咒詛！現代人的山寨福音可能是「成功神學」或「道德主義」——以為只要表現好，神才會愛我。保羅用自己的生命見證（從逼迫者變成使徒）直言：我不是要討人的喜歡，我是要作基督的僕人。純淨的福音，才有純淨的能力。", practiceGod:"審視自己的禱告動機，是否有時把神當作滿足慾望的工具？求神恢復你對祂純粹的敬畏與愛。", practicePeople:"當身邊的肢體因表現不佳而深感內疚時，不要用道德標準去加重他的負擔，要用純粹的恩典話語安慰他。", prayer:"主基督，求祢保守我的心不被世界塞滿山寨的律法與包裝。我不要過度迎合人的眼光，我渴望單單作祢真誠的僕人。求祢恢復我對純淨恩典的渴慕，讓我用這無條件的愛，安慰因表現不完美而內疚的肢體。阿們。", verse:"「我現在是要得人的心呢？還是要得神的心呢？我豈是討人的喜歡嗎？」（加拉太書 1:10）", tags:"#拒絕山寨 #基督僕人 #純粹" },
+  { date:"7/18", day:18, book:"加拉太書", passage:"加拉太書 2:1-21", focus:"與基督同釘十字架，讓祂在你的生命中接管駕駛座。", navigation:"保羅在這章記錄了他與大徒弟彼得的正面衝突，因為彼得在猶太人面前裝假。這提醒我們，連屬靈巨擘都可能落入「假冒偽善」的陷阱。隨後保羅說出了全聖經最震撼的宣告之一：加拉太書 2:20。我們已經與基督同釘十字架，現在活著的不再是我，乃是基督在我裡面活著。現代人活得很累，是因為我們一直想坐在自己生命的駕駛座上掌控一切。把方向盤交給基督，靠著愛我們的神子的信心而活，這才是真正的輕鬆與釋放。", practiceGod:"閉上眼睛，想像自己把生命的方向盤交給坐在身旁的耶穌，對祂說：「主啊，今天祢來開車，我聽祢的。」", practicePeople:"當今天在職場或人際關係中感到「自我（ego）」受挫、想發脾氣時，心中默念：「現在活著的不再是我，乃是基督。」讓情緒冷卻。", prayer:"主耶穌，今天我向我的驕傲與掌控欲宣告同釘十字架。我正式將生命的方向盤交託給祢，請祢接管我的心思意念。當我的自我受挫、憤怒將起時，求祢讓我在祢裡面安息，宣告現在活著的乃是基督。阿們。", verse:"「現在活著的不再是我，乃是基督在我裡面活著。」（加拉太書 2:20）", tags:"#方向盤交出 #同釘十字架 #新生命" },
+  { date:"7/19", day:19, book:"加拉太書", passage:"加拉太書 3:1-29", focus:"不要當靈性的無知人，靠聖靈入門就絕不靠肉體成全。", navigation:"保羅大聲疾呼：「無知的加拉太人哪！」這句話同樣在對現代基督徒敲警鐘。我們常常「靠聖靈入門」，體驗到神的愛而流淚得救，但過了幾年，我們卻開始「靠肉體成全」——企圖用自己的表現、事工的成就、讀經的時數來向神邀功、向人炫耀。保羅說，律法只是把我們引向基督的「訓蒙師」。現在我們因著信，都已經披戴基督，在祂裡面不分階級、身分，全部都是神合法的產業繼承人。", practiceGod:"放下今天所有事工的成就感，單純回到像小孩子一樣的單純，對神說：「阿爸父，謝謝祢，我是祢的寶貝孩子。」", practicePeople:"在教會群體中，刻意打破因社會地位、財富或學歷帶來的無形隔閡，主動去跟不同背景的人同桌團契。", prayer:"親愛的阿爸天父，謝謝祢讓我藉著信心白白披戴基督，成為合法的產業繼承人。求祢拿走我想靠著事工成就或道德好表現來向祢邀功的無知。讓我今天回到最單純的孩子身分，跨越階級去愛不同的人。阿們。", verse:"「你們既靠聖靈入門，如今還靠肉體成全嗎？你們是這樣無知嗎？」（加拉太書 3:3）", tags:"#聖靈入門 #拒絕內卷 #天國繼承人" },
+  { date:"7/20", day:20, book:"加拉太書", passage:"加拉太書 4:1-31", focus:"脫離奴僕的恐懼，大聲呼叫神為「阿爸，父！」", navigation:"許多現代基督徒與上帝的關係像「雇工」——做多少事、拿多少薪水，沒做好就害怕被開除。保羅在這章宣告，時候滿足了，神差遣祂的兒子來，是要叫我們得著「兒子的名分」。神甚至把兒子的靈放入我們心裡，使我們能親暱地喊祂「阿爸，父！」雇工做事是出於恐懼，兒子做事是出於愛。保羅甚至用生動的比喻，寧願承受生產之苦，也要看到基督的生命在加拉太人心裡成形，這就是福音的終極渴望。", practiceGod:"在今天每一次禱告的開頭，刻意放慢速度，深情地呼喊三聲「阿爸，父」，體會那份毫無恐懼的父子/父女連結。", practicePeople:"身為父母或屬靈同伴的你，今天用無條件的愛去包容孩子或羊群的犯錯，不急著責備，先給予接納的擁抱。", prayer:"阿爸，父！謝謝祢差遣兒子的靈進入我的心，徹底粉碎了我靈魂裡那份害怕被開除的奴僕恐懼。我是祢心愛的兒女，求祢讓基督的生命在我裡面成熟成形，使我能用這份毫無條件的愛，去擁抱犯錯的人。阿們。", verse:"「你們既為兒子，神就差他兒子的靈進入你們的心，呼叫：『阿爸！父！』」（加拉太書 4:6）", tags:"#阿爸父 #不再是奴僕 #生命成形" },
+  { date:"7/21", day:21, book:"加拉太書", passage:"加拉太書 5:1-26", focus:"順著聖靈行事，在自由中結出豐盛的生命果子。", navigation:"基督釋放了我們，是要我們得自由！但現代人常把自由誤解為「只要我喜歡，有什麼不可以」的放縱。保羅指出，放縱情慾只會帶來嫉妒、惱怒、紛爭等靈性惡臭。真正的自由，是擁有「不做惡事的自由」，並且甘心樂意用愛心彼此服事。這章提出了著名的「聖靈九果」：仁愛、喜樂、和平、忍耐、恩慈、良善、信實、溫柔、節制。這些果子不是靠意志力裝飾上去的，而是當我們每天順著聖靈的引導生活時，生命自然散發出的迷人香氣。", practiceGod:"檢視聖靈九果，選出一個你目前最缺乏的（例如：節制或忍耐），求聖靈今天在你的心中特別動工培育。", practicePeople:"實踐「用愛心彼此服事」，今天為家人或同事做一件微小但貼心的服事（例如：順手倒垃圾、洗碗或幫忙買午餐）。", prayer:"釋放我的主，謝謝祢賜我真自由。求聖靈今天在我的生命泥土中，栽培出仁愛、忍耐與節制的果子。主啊，挪去我的自私與血氣，讓我心甘情願透過微小貼心的實踐，在生活中用愛心彼此服事。阿們。", verse:"「聖靈所結的果子，就是仁愛、喜樂、和平、忍耐、恩慈、良善、信實、溫柔、節制。」（加拉太書 5:22-23）", tags:"#聖靈果子 #真自由 #香氣溢出" },
+  { date:"7/22", day:22, book:"加拉太書", passage:"加拉太書 6:1-18", focus:"行善不灰心，因為順著聖靈撒種的必收成永生。", navigation:"加拉太書的尾聲充滿了極具操作性的群體智慧。保羅提醒我們，若看見肢體被過犯所勝，要用「溫柔的心」把他挽回過來，並且要互相擔當重擔。更重要的是，保羅提出了一個宇宙恆常的律：人種的是什麼，收的也是什麼。在現代這個講求速成的時代，行善和服事往往短時間看不到效果，讓人容易疲憊灰心。請記住這句應許：若不灰心，到了時候就要收成！不要為自己的面子驕傲，要單單誇耀耶穌基督的十字架。", practiceGod:"面對服事或信仰生活中的瓶頸，向神做一個「不灰心」的宣告，求祂為你的靈性續航力加添神聖的燃料。", practicePeople:"當得知某位肢體正處於經濟、身體或情緒的極大重擔中，主動聯絡他，對他說：「這段路，我陪你一起扛。」並給予具體協助。", prayer:"恆久忍耐的主，在漫長的撒種過程中，我的肉體常常感到疲憊灰心。求祢將十字架的榮耀刻在我心中，作我永不枯竭的燃料。讓我行善不喪志，並賜我溫柔的心與實際行動，去與軟弱肢體同扛重擔。阿們。", verse:"「我們行善，不可喪志；若不灰心，到了時候就要收成。」（加拉太書 6:9）", tags:"#不灰心撒種 #挽回與擔當 #十字架的榮耀" },
+  { date:"7/23", day:23, book:"歌羅西書", passage:"歌羅西書 1:1-29", focus:"基督是一切的核心，祂在凡事上居首位。", navigation:"歡迎進入歌羅西書！這是一卷將耶穌基督的榮耀放大到極致的書信。當時歌羅西教會受到了神祕主義和異端的干擾，保羅直接拋出了「基督最高論」：耶穌是那不能看見之神的像，萬有都是靠祂造的，也是為祂造的。現代世界有太多事物在爭奪我們心中的焦點（金錢、名聲、甚至事工）。保羅提醒我們，基督才是那維繫宇宙運作、也是住存在我們心裡那「榮耀的盼望」。當基督在你的凡事上居首位時，你生命零散的拼圖才能找到正確的位置。", practiceGod:"在禱告中尊崇耶穌是你生命中每一部分的「萬王之王」（包括你的財務、婚姻、未來），宣告祂居首位。", practicePeople:"面對你目前正在牧養或關懷的對象，效法保羅的志向：用諸般的智慧勸戒、教導他，要把他「在基督裡完完全全地引到神面前」。", prayer:"榮耀的元首基督，祢是那不能看見之神的像。今天我將我的金錢、未來與家庭完全尊祢為大，宣告祢在我的凡事上高居首位。願祢這至高的榮耀盼望，成為我牧養、引導他人的唯一核心。阿們。", verse:"「他在萬有之先；萬有也靠他而立。他也是教會全體之首……使他可以在凡事上居首位。」（歌羅西書 1:17-18）", tags:"#居首位 #宇宙中心 #榮耀盼望" },
+  { date:"7/24", day:24, book:"歌羅西書", passage:"歌羅西書 2:1-23", focus:"在基督裡生根建造，拒絕世俗虛空的哲學洗腦。", navigation:"保羅擔心歌羅西人被世俗的虛空妄言和人間遺傳給「擄去」。現代社會是一個巨大的洗腦機器，透過短影音、廣告和主流價值觀，不斷灌輸我們「你不夠好、你需要擁有更多才能幸福」的虛假哲學。但保羅大聲宣告：神本性的一切豐盛，都有形有體地居住在基督裡面，而我們在祂裡面也已經「得了豐盛」。你不需要靠精緻的律法主義或神秘體驗來給自己加分，你只需要在基督裡紮根，祂已經在十字架上公開贏得了勝仗，把所有的控告塗抹掉了。", practiceGod:"刻意安排一段30分鐘遠離手機的時間，單純藉著讀經與默想，讓自己的靈性生命在基督的肥沃土壤中深根。", practicePeople:"面對身邊正被世俗「比較文化」壓得喘不過氣的朋友，用神的話語提醒他：他在基督裡已經得著了最完美的豐盛。", prayer:"主基督，這世界每天都在對我進行虛空的哲學洗腦，試圖用比較奪走我的平安。我宣告我在祢裡面已經得著了一切的豐盛。求祢讓我的靈修生活在祢裡面生根建造，能用十架凱旋的真理，釋放被壓的人。阿們。", verse:"「你們既然接受了主基督耶穌，就當遵他而行，在他裡面生根建造，信心堅固……」（歌羅西書 2:6-7）", tags:"#生根建造 #看穿虛空 #十架凱旋" },
+  { date:"7/25", day:25, book:"歌羅西書", passage:"歌羅西書 3:1-25", focus:"脫去舊人的髒衣服，換上天國最新款的恩慈套裝。", navigation:"既然我們與基督一同復活，思維邏輯就必須升級，要「思念上面的事」。保羅用了一個極具畫面感的比喻：脫衣服與穿衣服。我們要像脫掉發臭的舊衣服一樣，脫去惱恨、憤怒、惡毒和謊言；同時，要穿上天國最新款的衣服——憐憫、恩慈、謙虛、溫柔和忍耐。最重要的是，要讓「基督的平安在心裡裁判（作主）」。這章還延伸到了家庭與職場：無論做什麼，都要像給主做的，而不是給人做的。", practiceGod:"在今天做任何決定或陷入情緒拉扯時，安靜下來問自己：「此時此刻，基督的平安在我的心裡投贊成票還是反對票？」", practicePeople:"面對家人或極難伺候的老闆/客戶，在心中默默對自己說：「今天我是為耶穌做的。」用最高標準的溫柔與敬業回應他。", prayer:"與我一同復活的主，今天我要脫去憤怒與惡毒的髒衣。求祢為我披上憐憫與溫柔的天國衣服。讓基督的平安作我心中的裁判長，在職場、家庭中，使我所說所做都奉祢的名，甘心樂意為祢而行。阿們。", verse:"「無論做什麼，或說話或行事，都要奉主耶穌的名，藉著他感謝父神。」（歌羅西書 3:17）", tags:"#天國服飾 #基督的平安 #為耶穌而做" },
+  { date:"7/26", day:26, book:"歌羅西書", passage:"歌羅西書 4:1-18", focus:"言語要帶著和氣與鹽味，在日常中抓住展現信仰的窗口。", navigation:"歌羅西書的尾聲聚焦在門徒的公關與人際智慧。保羅呼籲我們要恆切禱告，並且在與未信主的人交往時要「用智慧」。他提到一個非常生動的指標：你們的言語要常常帶著和氣，好像「用鹽調和」。鹽能防腐、能提味。現代網絡世界充滿了辛辣、諷刺與攻擊性的語言，基督徒的對話應該要成為社會的防腐劑，讓人感到溫暖且有深度。", practiceGod:"為教會的牧者、宣教士或全職同工恆切禱告，求神為他們開傳道的門，賜給他們無懼的膽量。", practicePeople:"今天在社群媒體留言或與人對話時，刻意過濾掉任何負面消極的詞彙，讓你的話語充滿鼓勵、和氣與智慧的「鹽味」。", prayer:"智慧的主，求祢用聖靈防腐的鹽，調和我的舌頭。當我面對網絡或日常對話時，除去我的血氣與諷刺，讓我的言語充滿帶著和氣的鹽味。也求祢為福音開傳道的門，加添牧者與同工無懼的膽量。阿們。", verse:"「你們的言語要常常帶著和氣，好像用鹽調和，就可知道該怎樣回答各人。」（歌羅西書 4:6）", tags:"#鹽味言語 #恆切禱告 #智慧公關" },
+  { date:"7/27", day:27, book:"腓立比書", passage:"腓立比書 1:1-30", focus:"無論環境如何受限，活著就是基督，死了就有益處。", navigation:"歡迎來到充滿喜樂的腓立比書！這卷書最奇妙的地方在於，它是保羅在伸手不見五指的監獄裡寫成的，但「喜樂」這個詞卻貫穿全書。保羅向我們展示了什麼叫做「環境無法囚禁的生命」。他坐在監獄裡，卻看見福音因此被興旺；他面對生死的抉擇，卻活出驚人的高度：「因我活著就是基督，我死了就有益處。」現代人常因為工作受挫、財務吃緊就失去喜樂，但保羅向我們證明，當你活著的目的完全是為了基督時，沒有任何環境能剝奪你的核心喜樂。", practiceGod:"面對目前把你關住的「環境監獄」（如不順遂的現狀），宣告這環境反而要叫福音興旺，並為此讚美神。", practicePeople:"效法保羅對腓立比教會的愛，在心裡默默為你小組的每位組員提名禱告，並由衷地為他們在信仰上的長進感到歡欣。", prayer:"監獄中賜喜樂的主，不論我的現狀如何受限，我宣告環境無法囚禁我的靈魂！我活著的終極目的就是基督。求祢挪去我因資源匱乏帶來的沮喪，讓我在困境中高歌，持續用信心守望並長進我所愛的肢體。阿們。", verse:"「因我活著就是基督，我死了就有益處。」（腓立比書 1:21）", tags:"#監獄中的歌聲 #活著就是基督 #超越環境的喜樂" },
+  { date:"7/28", day:28, book:"腓立比書", passage:"腓立比書 2:1-30", focus:"效法基督的虛己與下降，在世上作發光的星體。", navigation:"這章包含了著名的新約聖經神學高峰——「基督頌」。保羅呼籲教會要同心，而秘訣就是「以基督耶穌的心為心」。耶穌展現了一種與世界完全相反的「下降美學」：祂本有神的形象，卻反倒虛己，取了奴僕的形象，甚至順服至死。現代文化教我們不斷向上爬、爭權奪利、證明自己多厲害；但天國的偉大卻在於誰願意走下去服事。當我們甘心放下權利、不發怨言、不說爭論的話時，我們就會像黑夜中的「明體（星星）」一樣，在扭曲的世代中發出耀眼的光芒。", practiceGod:"默想耶穌在十字架上的傾倒與虛己，在禱告中對神說：「主啊，我願意放下我的面子與特權，求祢賜我一顆僕人的心。」", practicePeople:"在今天的團隊合作或家庭生活中，當發生意見不合時，刻意實踐「各人看別人比自己強」，先聆聽並成就別人的想法。", prayer:"主耶穌，求祢將祢謙卑下降的十架美學深深烙印在我心裡。拿走我想在團隊或家庭中爭競出頭的傲慢，賜我一顆順服虛己的僕人之心。讓我甘心成全、看別人比自己強，在黑夜世代中如星星般為祢發光。阿們。", verse:"「你們當以基督耶穌的心為心……反倒虛己，取了奴僕的形象，成為人的樣式。」（腓立比書 2:5-7）", tags:"#下降美學 #以基督的心為心 #夜空中的星" },
+  { date:"7/29", day:29, book:"腓立比書", passage:"腓立比書 3:1-21", focus:"丟棄過去的偶像與履歷，忘記背後努力向著標竿直跑。", navigation:"保羅在這章大膽地丟出了他的靈性斷捨離。他列舉了自己過去引以為傲的宗教履歷（純種猶太人、法利賽人、律法上的無可指責），但隨後他宣告：為了認識耶穌，他已經把這一切看作「糞土（垃圾）」。現代人身上貼滿了各種標籤：名校畢業、高薪職位、完美外表，我們常被這些標籤給綁架。保羅教導我們，最崇高的知識就是認識基督。不要沉溺於過去的成功，也不要被過去的失敗捆綁，拍拍灰塵，忘記背後，努力面前的，向著神在基督裡召你拿的天國獎賞直跑！", practiceGod:"拿出一張紙，寫下你目前最引以為傲的外在成就（或最讓你自卑的過去），在禱告中宣告：與認識基督相比，這一切都微不足道。", practicePeople:"關懷一位正沉溺於過去失敗陰影、或者正因中年危機失去方向的肢體，陪伴他一起尋找神在前方為他預備的生命標竿。", prayer:"主耶穌，與認識祢這至高至美的至寶相比，世上的名利標籤皆是糞土。求祢給我屬靈的勇氣進行靈性斷捨離，讓我徹底忘記背後的成就與失敗，拍拍灰塵，雙眼單單注視天國標竿，全力奔跑。阿們。", verse:"「我只有一件事，就是忘記背後，努力面前的，向著標竿直跑。」（腓立比書 3:13-14）", tags:"#靈性斷捨離 #向著標竿直跑 #天國公民" },
+  { date:"7/30", day:30, book:"腓立比書", passage:"腓立比書 4:1-23", focus:"靠著加力量的基督，在任何環境中都能學會知足的秘訣。", navigation:"這是腓立比書充滿力量與安慰的終章。保羅留下了那句激勵無數人的終極應許：「我靠著那加給我力量的，凡事都能做。」但請注意，這句話的上下文不是世俗的成功學，而是關乎「靈性的知足」。現代社會充斥著比較與消費主義，不斷激發我們靈魂的飢餓感。保羅卻在監獄中親自示範，無論是處豐富還是處卑賤，他都得著了隨事隨在的秘訣。這是一種由內而外的強大，因為有一位神會照祂榮耀的豐富，在基督裡滿足你一切的需要。", practiceGod:"面對未來未知的生活挑戰，在神面前宣告：「主啊，靠著祢賜的力量，我宣告我能帶著喜樂與知足勝過一切。」", practicePeople:"實踐「彼此幫貼」，今天慷慨地給予身邊某位在經濟、或事工上需要資源的肢體一筆實際的奉獻或實質的援助。", prayer:"凡事都能的主，當消費主義與比較不斷激發我靈魂的飢餓時，求祢用祢榮耀的豐富填滿我。我宣告靠著祢賜的力量，在任何高山低谷中我都學會了知足，並樂意以慷慨的支援，成為他人豐富的祝福。阿們。", verse:"「我靠著那加給我力量的，凡事都能做。」（腓立比書 4:13）", tags:"#凡事都能 #靈性知足 #神聖燃料" },
+  { date:"7/31", day:31, book:"腓利門書", passage:"腓利門書 1:1-25", focus:"福音突破階級屏障，在基督裡用愛修復破碎的關係。", navigation:"這卷短短的私人信件，展示了福音落地在人際關係中時最震撼的張力。保羅在獄中帶領了逃跑的奴隸阿尼西謀信主，隨後他寫信給奴隸主腓利門，懇求他不僅要饒恕阿尼西謀，更要「接納他如同親愛的弟兄」。在當時羅馬帝國階級森嚴、逃奴會被判死刑的背景下，這簡直是顛覆社會結構的要求。這讓我們看見，真正的基督教信仰不只是個人的修養，更是能在受損、背叛與破碎的社會關係中，帶來完全的和好與恢復。", practiceGod:"感謝神在我們還是得罪祂的「逃奴」時，就藉著耶穌接待我們。求神賜下天國的愛，來擴張自己饒恕他人的容量。", practicePeople:"思想在你目前的人際網絡中，是否有一個長久疏離、或曾傷害過你的「阿尼西謀」？主動在心中饒恕他，並在今天傳一則簡單平安的問候給對方，跨出和好的第一步。", prayer:"恩典和好的神，謝謝祢在我們還是罪惡逃奴時，就張開雙臂接納我們成為親愛的兒女。求祢除去我心中深藏的怨恨高牆，賜我突破階級與傷害的愛，主動去饒恕、修復那段受損的關係，讓生命重歸和好。阿們。", verse:"「他不再是奴僕，乃是高過奴僕，是親愛的兄弟。」（腓利門書 1:16）", tags:"#恩典和好 #不再是奴僕 #打破高牆" },
+];
+
+const BOOK_STYLE = {
+  "羅馬書":  { tag:"bg-blue-100 text-blue-800 border-blue-200",   border:"border-l-blue-400",   hdr:"from-blue-50" },
+  "加拉太書":{ tag:"bg-purple-100 text-purple-800 border-purple-200", border:"border-l-purple-400", hdr:"from-purple-50" },
+  "歌羅西書":{ tag:"bg-green-100 text-green-800 border-green-200",  border:"border-l-green-400",  hdr:"from-green-50" },
+  "腓立比書":{ tag:"bg-amber-100 text-amber-800 border-amber-200",  border:"border-l-amber-400",  hdr:"from-amber-50" },
+  "腓利門書":{ tag:"bg-rose-100 text-rose-800 border-rose-200",    border:"border-l-rose-400",   hdr:"from-rose-50" },
+};
+
+let currentIndex = 0;
+let currentTab = 'content';
+
+function getTodayIndex() {
+  const now = new Date();
+  if (now.getMonth() + 1 === 7 && now.getDate() >= 1 && now.getDate() <= 31) return now.getDate() - 1;
+  return -1;
+}
+
+const todayIndex = getTodayIndex();
+
+function render() {
+  const r = READINGS[currentIndex];
+  const s = BOOK_STYLE[r.book];
+  const isToday = currentIndex === todayIndex;
+  const isFuture = todayIndex >= 0 && currentIndex > todayIndex;
+  const completed = todayIndex >= 0 ? todayIndex + 1 : 0;
+
+  // Header progress
+  document.getElementById('hdr-done').textContent = completed;
+  document.getElementById('progress-bar').style.width = Math.round(completed / 31 * 100) + '%';
+
+  // Card border & header bg
+  const card = document.getElementById('main-card');
+  card.className = `bg-white rounded-2xl shadow-md border-l-4 ${s.border} overflow-hidden fade-in`;
+  // re-trigger animation
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+
+  document.getElementById('card-header').className = `bg-gradient-to-r ${s.hdr} to-white px-5 pt-5 pb-4`;
+  document.getElementById('book-tag').className = `text-xs font-semibold px-2 py-0.5 rounded-full border ${s.tag}`;
+  document.getElementById('book-tag').textContent = r.book;
+  document.getElementById('today-tag').classList.toggle('hidden', !isToday);
+  document.getElementById('future-tag').classList.toggle('hidden', !isFuture);
+  document.getElementById('day-meta').textContent = `第 ${r.day} 天 · 2026 年 ${r.date}`;
+  document.getElementById('passage').textContent = r.passage;
+  document.getElementById('day-num').textContent = r.day;
+  document.getElementById('focus').textContent = r.focus;
+  document.getElementById('navigation').textContent = r.navigation;
+  document.getElementById('practice-god').textContent = r.practiceGod;
+  document.getElementById('practice-people').textContent = r.practicePeople;
+  document.getElementById('prayer').textContent = r.prayer;
+  document.getElementById('verse').textContent = r.verse;
+  document.getElementById('tags').textContent = r.tags;
+
+  // Buttons
+  document.getElementById('btn-prev').disabled = currentIndex === 0;
+  document.getElementById('btn-next').disabled = currentIndex === 30;
+  document.getElementById('btn-today').classList.toggle('hidden', todayIndex < 0 || currentIndex === todayIndex);
+
+  // Date grid
+  const grid = document.getElementById('date-grid');
+  grid.innerHTML = '';
+  READINGS.forEach((rd, i) => {
+    const past = todayIndex >= 0 && i < todayIndex;
+    const today = i === todayIndex;
+    const sel = i === currentIndex;
+    let cls = 'rounded-lg p-1 text-center text-xs font-semibold cursor-pointer transition-all border select-none ';
+    if (sel)        cls += 'bg-blue-600 text-white border-blue-600 shadow scale-105';
+    else if (today) cls += 'bg-blue-100 text-blue-700 border-blue-300';
+    else if (past)  cls += 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+    else            cls += 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50';
+    const btn = document.createElement('button');
+    btn.className = cls;
+    btn.innerHTML = `<div style="font-size:9px;opacity:.6">${rd.date.replace('7/','')}</div><div style="font-size:11px">${rd.day}</div>${past && !sel ? '<div style="font-size:8px;color:#10b981">✓</div>' : ''}`;
+    btn.onclick = () => { currentIndex = i; currentTab = 'content'; render(); };
+    grid.appendChild(btn);
+  });
+
+  // Tab state
+  switchTab(currentTab, false);
+}
+
+function switchTab(tab, doRender = true) {
+  currentTab = tab;
+  document.getElementById('panel-content').classList.toggle('hidden', tab !== 'content');
+  document.getElementById('panel-prayer').classList.toggle('hidden', tab !== 'prayer');
+  ['content','prayer'].forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    if (t === tab) { btn.className = 'py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-blue-500 text-blue-600 transition-colors'; }
+    else           { btn.className = 'py-2.5 px-1 mr-5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors'; }
+  });
+}
+
+function navigate(dir) {
+  currentIndex = Math.max(0, Math.min(30, currentIndex + dir));
+  currentTab = 'content';
+  render();
+}
+
+function goToday() {
+  if (todayIndex >= 0) { currentIndex = todayIndex; currentTab = 'content'; render(); }
+}
+
+// Init
+currentIndex = todayIndex >= 0 ? todayIndex : 0;
+render();
+</script>
+</body>
+</html>
