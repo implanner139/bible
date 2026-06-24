@@ -1313,6 +1313,15 @@ const SCRIPTURE = {
 48:35 城的四圍共一萬八千肘；從那日以後，這城的名字必稱為耶和華的所在。`,
 };
 
+// Read-tracking
+function loadReadDays() {
+  try { const s = localStorage.getItem('bible-read'); return s ? new Set(JSON.parse(s)) : new Set(); }
+  catch { return new Set(); }
+}
+function saveReadDays() { localStorage.setItem('bible-read', JSON.stringify([...readDays])); }
+function dayKey(sec, idx) { return sec + '-' + idx; }
+const readDays = loadReadDays();
+
 let currentSection = 'july'; // 'june' or 'july'
 let currentIndex = 0;
 let currentTab = 'scripture';
@@ -1399,6 +1408,10 @@ function render() {
   document.getElementById('locked-panel').classList.toggle('hidden', available);
 
   if (available) {
+    // Mark this day as read
+    const k = dayKey(currentSection, currentIndex);
+    if (!readDays.has(k)) { readDays.add(k); saveReadDays(); }
+
     const scriptureBody = document.getElementById('scripture-body');
     const scriptureText = SCRIPTURE[r.date] || '';
     if (scriptureText) {
@@ -1449,12 +1462,12 @@ function render() {
   JUNE_READINGS.forEach((rd, i) => {
     const avail = isAvailable('june', i);
     const isT = todayInfo.section === 'june' && i === todayInfo.index;
-    const isPast = todayInfo.section === 'june' ? i < todayInfo.index : avail;
+    const isRead = readDays.has(dayKey('june', i));
     const sel = currentSection === 'june' && i === currentIndex;
     const btn = document.createElement('button');
-    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isPast ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
+    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
     btn.style.minHeight = '42px';
-    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('6/','')}</div><div style="font-size:12px">${rd.day}</div>${isPast && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
+    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('6/','')}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
     if (avail) {
       btn.onclick = () => { currentSection = 'june'; currentIndex = i; currentTab = 'scripture'; render(); };
     } else {
@@ -1469,12 +1482,12 @@ function render() {
   READINGS.forEach((rd, i) => {
     const avail = isAvailable('july', i);
     const isT = todayInfo.section === 'july' && i === todayInfo.index;
-    const isPast = todayInfo.section === 'july' && i < todayInfo.index;
+    const isRead = readDays.has(dayKey('july', i));
     const sel = currentSection === 'july' && i === currentIndex;
     const btn = document.createElement('button');
-    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isPast ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
+    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
     btn.style.minHeight = '42px';
-    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('7/','')}</div><div style="font-size:12px">${rd.day}</div>${isPast && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
+    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('7/','')}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
     if (avail) {
       btn.onclick = () => { currentSection = 'july'; currentIndex = i; currentTab = 'scripture'; render(); };
     } else {
