@@ -81,6 +81,17 @@
 
 <main class="max-w-lg mx-auto px-4 pt-4 pb-6 space-y-4">
 
+  <!-- Font size slider -->
+  <div class="card px-5 py-3">
+    <div class="flex items-center gap-3">
+      <span class="text-xs gold-text font-bold tracking-widest uppercase" style="opacity:.5;white-space:nowrap">字體大小</span>
+      <span class="text-xs" style="color:rgba(255,255,255,.3)">A</span>
+      <input id="fs-slider" type="range" min="12" max="22" value="15" step="1" class="flex-1">
+      <span class="text-lg font-black" style="color:rgba(255,255,255,.3)">A</span>
+      <span id="fs-label" class="text-xs gold-text font-bold" style="min-width:28px;text-align:right">15</span>
+    </div>
+  </div>
+
   <!-- Main card -->
   <div id="main-card" class="card overflow-hidden fade-in">
 
@@ -158,17 +169,6 @@
         <p id="verse" class="text-sm font-bold text-white"></p>
         <p id="tags" class="text-xs mt-3 gold-text opacity-60 font-medium"></p>
       </div>
-    </div>
-  </div>
-
-  <!-- Font size slider -->
-  <div class="card px-5 py-4">
-    <div class="flex items-center gap-3">
-      <span class="text-xs gold-text font-bold tracking-widest uppercase" style="opacity:.5;white-space:nowrap">字體大小</span>
-      <span class="text-xs" style="color:rgba(255,255,255,.3)">A</span>
-      <input id="fs-slider" type="range" min="12" max="22" value="15" step="1" class="flex-1">
-      <span class="text-lg font-black" style="color:rgba(255,255,255,.3)">A</span>
-      <span id="fs-label" class="text-xs gold-text font-bold" style="min-width:28px;text-align:right">15</span>
     </div>
   </div>
 
