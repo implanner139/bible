@@ -125,7 +125,8 @@
     <button onclick="dismissSplash()" style="width:100%;padding:12px 20px;border-radius:14px;background:transparent;border:1px solid rgba(255,255,255,.1);cursor:pointer;font-size:14px;color:rgba(232,232,240,.4);transition:color .2s,border-color .2s;" onmouseover="this.style.color='rgba(232,232,240,.7)';this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.color='rgba(232,232,240,.4)';this.style.borderColor='rgba(255,255,255,.1)'">
       不登入，直接進入
     </button>
-    <div style="margin-top:20px;font-size:11px;color:rgba(232,232,240,.2);line-height:1.5;">不登入也可以閱讀每日經文與靈修內容<br>但進度與筆記不會被記錄</div>
+    <div id="splash-error" style="margin-top:12px;font-size:12px;color:#f87171;min-height:16px;display:none;"></div>
+    <div style="margin-top:12px;font-size:11px;color:rgba(232,232,240,.2);line-height:1.5;">不登入也可以閱讀每日經文與靈修內容<br>但進度與筆記不會被記錄</div>
   </div>
 </div>
 
@@ -283,8 +284,20 @@ function showSplash() {
 }
 
 function splashGoogleSignIn() {
-  auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())
-    .catch(e => console.error('Login error:', e.message));
+  const errEl = document.getElementById('splash-error');
+  errEl.style.display = 'none';
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e => {
+      console.error('Login error:', e.code, e.message);
+      const msgs = {
+        'auth/popup-blocked': '彈出視窗被封鎖，請允許此網站的彈出視窗後再試。',
+        'auth/popup-closed-by-user': '登入視窗已關閉，請再試一次。',
+        'auth/unauthorized-domain': '此網域尚未授權登入，請聯絡管理員。',
+        'auth/cancelled-popup-request': '',
+      };
+      const msg = msgs[e.code] || `登入失敗：${e.message}`;
+      if (msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+    });
 }
 
 function googleSignIn() {
