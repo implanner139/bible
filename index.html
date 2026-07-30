@@ -294,8 +294,11 @@ function handleUserTap() {
   if (confirm(`登出 ${currentUser.email}？`)) auth.signOut();
 }
 
-// Handle redirect result first (from signInWithRedirect)
-auth.getRedirectResult().catch(e => console.error('Redirect result error:', e.message));
+let _authReady = false;
+
+auth.getRedirectResult()
+  .then(result => { /* redirect login handled by onAuthStateChanged */ })
+  .catch(e => console.error('Redirect result error:', e.message));
 
 auth.onAuthStateChanged(async user => {
   currentUser = user;
@@ -308,11 +311,13 @@ auth.onAuthStateChanged(async user => {
     avatarBtn.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
     await loadCloudData();
   } else {
-    showSplash();
+    // Only show splash on the very first auth check (not on mid-session sign-out)
+    if (!_authReady) showSplash();
     loginBtn.style.display = 'flex';
     avatarBtn.style.display = 'none';
     userNotes = {};
   }
+  _authReady = true;
   renderNotes();
 });
 
