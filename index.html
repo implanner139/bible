@@ -58,7 +58,7 @@
     /* Auth */
     #btn-login { width:34px;height:34px;border-radius:50%;background:#1a1a1a;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;flex-shrink:0; }
     #btn-login:hover { border-color:#555;background:#2a2a2a; }
-    #user-avatar-btn { width:34px;height:34px;border-radius:50%;background:var(--gold);color:#000;font-weight:900;font-size:13px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0; }
+    #user-avatar-btn { width:34px;height:34px;border-radius:50%;background:var(--gold);color:#000;font-weight:900;font-size:13px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
     /* Notes */
     #notes-section { display:none; }
     #notes-input { width:100%;background:transparent;border:none;color:rgba(255,255,255,.8);font-size:.85rem;font-family:-apple-system,'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif;line-height:1.9;resize:none;outline:none;min-height:80px; }
@@ -175,6 +175,13 @@
       <p class="text-sm" style="color:rgba(232,232,240,.5)">這天的內容還未到達<br>請在當天回來閱讀</p>
     </div>
 
+    <!-- Notes (visible when logged in + day available) -->
+    <div id="notes-section" class="px-5 pb-4" style="display:none;border-bottom:1px solid #1a1a1a;">
+      <div class="section-label mb-2" style="padding-top:16px;">📝 今日靈修筆記</div>
+      <textarea id="notes-input" placeholder="寫下今天的讀經心得…" oninput="onNotesInput()" style="width:100%;min-height:90px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;font-size:14px;color:rgba(232,232,240,.85);resize:vertical;line-height:1.6;font-family:inherit;box-sizing:border-box;"></textarea>
+      <div id="notes-status" class="text-xs mt-1" style="color:rgba(255,255,255,.2);min-height:16px"></div>
+    </div>
+
     <!-- Tabs -->
     <div id="tabs-row" class="flex px-4 gap-4 border-b" style="border-color:#222">
       <button id="tab-scripture" class="tab-btn active" onclick="switchTab('scripture')">今日經文</button>
@@ -221,13 +228,6 @@
         <p id="tags" class="text-xs mt-3 gold-text opacity-60 font-medium"></p>
       </div>
     </div>
-  </div>
-
-  <!-- Notes (visible when logged in + day available) -->
-  <div id="notes-section" class="card px-5 py-4">
-    <div class="section-label mb-2">📝 今日筆記</div>
-    <textarea id="notes-input" placeholder="寫下今天的讀經心得…" oninput="onNotesInput()"></textarea>
-    <div id="notes-status" class="text-xs mt-1" style="color:rgba(255,255,255,.2);min-height:16px"></div>
   </div>
 
   <!-- Date picker -->
