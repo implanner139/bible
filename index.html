@@ -96,7 +96,7 @@
 </header>
 
 <!-- Login splash overlay -->
-<div id="login-splash" style="position:fixed;inset:0;z-index:999;background:#0d0d14;display:flex;align-items:center;justify-content:center;padding:24px;">
+<div id="login-splash" style="position:fixed;inset:0;z-index:999;background:#0d0d14;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s;">
   <div style="max-width:360px;width:100%;text-align:center;">
     <!-- Logo / church name -->
     <div style="font-size:13px;letter-spacing:.15em;color:rgba(201,168,76,.7);font-weight:700;text-transform:uppercase;margin-bottom:12px;">iM 行動教會</div>
@@ -264,12 +264,23 @@ let cloudSaveTimer = null;
 
 function dismissSplash() {
   const splash = document.getElementById('login-splash');
-  if (splash) { splash.style.opacity = '0'; splash.style.transition = 'opacity .3s'; setTimeout(() => splash.remove(), 300); }
+  if (splash) {
+    splash.style.opacity = '0';
+    splash.style.pointerEvents = 'none';
+    setTimeout(() => splash.remove(), 350);
+  }
+}
+
+function showSplash() {
+  const splash = document.getElementById('login-splash');
+  if (splash) {
+    splash.style.pointerEvents = '';
+    requestAnimationFrame(() => { splash.style.opacity = '1'; });
+  }
 }
 
 function splashGoogleSignIn() {
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .then(() => dismissSplash())
+  auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())
     .catch(e => console.error('Login error:', e.message));
 }
 
@@ -283,6 +294,9 @@ function handleUserTap() {
   if (confirm(`登出 ${currentUser.email}？`)) auth.signOut();
 }
 
+// Handle redirect result first (from signInWithRedirect)
+auth.getRedirectResult().catch(e => console.error('Redirect result error:', e.message));
+
 auth.onAuthStateChanged(async user => {
   currentUser = user;
   const loginBtn  = document.getElementById('btn-login');
@@ -294,6 +308,7 @@ auth.onAuthStateChanged(async user => {
     avatarBtn.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
     await loadCloudData();
   } else {
+    showSplash();
     loginBtn.style.display = 'flex';
     avatarBtn.style.display = 'none';
     userNotes = {};
