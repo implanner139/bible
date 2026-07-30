@@ -346,7 +346,7 @@ function renderNotes() {
   const section = document.getElementById('notes-section');
   const available = typeof isAvailable === 'function' && isAvailable(currentSection, currentIndex);
   if (!currentUser || !available) { section.style.display = 'none'; return; }
-  section.style.display = '';
+  section.style.display = 'block';
   const k = dayKey(currentSection, currentIndex);
   document.getElementById('notes-input').value = userNotes[k] || '';
   document.getElementById('notes-status').textContent = '';
