@@ -84,7 +84,10 @@
       <button id="btn-login" onclick="googleSignIn()" title="登入以同步讀經記錄">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </button>
-      <button id="user-avatar-btn" onclick="handleUserTap()" title="帳號"></button>
+      <div id="user-avatar-wrap" style="position:relative;display:none;flex-shrink:0;">
+        <button id="user-avatar-btn" onclick="handleUserTap()" title="帳號"></button>
+        <span id="user-online-dot" style="position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#34d399;border:2px solid #0d0d14;display:block;"></span>
+      </div>
       <div class="relative w-10 h-10">
         <svg class="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
@@ -291,7 +294,8 @@ function googleSignIn() {
 
 function handleUserTap() {
   if (!currentUser) return;
-  if (confirm(`登出 ${currentUser.email}？`)) auth.signOut();
+  const name = currentUser.displayName || currentUser.email || '使用者';
+  if (confirm(`✅ 已登入\n${name}\n\n點確定登出`)) auth.signOut();
 }
 
 let _authReady = false;
@@ -302,19 +306,20 @@ auth.getRedirectResult()
 
 auth.onAuthStateChanged(async user => {
   currentUser = user;
-  const loginBtn  = document.getElementById('btn-login');
-  const avatarBtn = document.getElementById('user-avatar-btn');
+  const loginBtn   = document.getElementById('btn-login');
+  const avatarWrap = document.getElementById('user-avatar-wrap');
+  const avatarBtn  = document.getElementById('user-avatar-btn');
   if (user) {
     dismissSplash();
     loginBtn.style.display = 'none';
-    avatarBtn.style.display = 'flex';
+    avatarWrap.style.display = 'flex';
     avatarBtn.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
     await loadCloudData();
   } else {
     // Only show splash on the very first auth check (not on mid-session sign-out)
     if (!_authReady) showSplash();
     loginBtn.style.display = 'flex';
-    avatarBtn.style.display = 'none';
+    avatarWrap.style.display = 'none';
     userNotes = {};
   }
   _authReady = true;
