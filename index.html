@@ -3610,6 +3610,55 @@ function isTodaySelected() {
   return currentSection === todayInfo.section && currentIndex === todayInfo.index;
 }
 
+function renderScriptureText(el, text) {
+  el.innerHTML = text.split('\n').map(line => {
+    const m = line.match(/^(\d+:\d+)\s+([\s\S]+)/);
+    if (m) return `<p style="margin-bottom:10px"><span class="scripture-verse-num">${m[1]}</span>${m[2]}</p>`;
+    return line.trim() ? `<p style="margin-bottom:10px">${line}</p>` : '';
+  }).join('');
+}
+
+// Cache to avoid repeated API calls within the session
+const _scriptureCache = {};
+
+async function fetchFHLScripture(passage, dateKey) {
+  if (_scriptureCache[dateKey]) return _scriptureCache[dateKey];
+  if (!passage) return null;
+
+  // Parse passage like "以賽亞書 1:1-全" / "羅馬書 3:1-18" / "約翰福音 1:1-2:25"
+  const m = passage.match(/^(.+?)\s+(\d+):(\d+)[-–](.+)$/);
+  if (!m) return null;
+  const [, book, chapStr,, endPart] = m;
+  const startChap = parseInt(chapStr);
+
+  // Determine end chapter (handle cross-chapter like "1:1-2:25")
+  const crossChap = endPart.match(/^(\d+):/);
+  const endChap = crossChap ? parseInt(crossChap[1]) : startChap;
+
+  try {
+    let allVerses = [];
+    for (let chap = startChap; chap <= endChap; chap++) {
+      const url = `https://bible.fhl.net/json/qb.php?chineses=${encodeURIComponent(book)}&chap=${chap}&version=rcuv`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.status === 'success' && data.record?.length) {
+        // Strip HTML tags from bible_text
+        data.record.forEach(v => {
+          const clean = v.bible_text.replace(/<[^>]+>/g, '').trim();
+          allVerses.push(`${v.chap}:${v.sec} ${clean}`);
+        });
+      }
+    }
+    if (!allVerses.length) return null;
+    const result = allVerses.join('\n');
+    _scriptureCache[dateKey] = result;
+    return result;
+  } catch(e) {
+    console.error('FHL fetch error:', e);
+    return null;
+  }
+}
+
 function render() {
   const r = currentReading();
   const available = isAvailable(currentSection, currentIndex);
@@ -3664,13 +3713,13 @@ function render() {
     const scriptureBody = document.getElementById('scripture-body');
     const scriptureText = SCRIPTURE[r.date] || '';
     if (scriptureText) {
-      scriptureBody.innerHTML = scriptureText.split('\n').map(line => {
-        const m = line.match(/^(\d+:\d+)\s+([\s\S]+)/);
-        if (m) return `<p style="margin-bottom:10px"><span class="scripture-verse-num">${m[1]}</span>${m[2]}</p>`;
-        return line ? `<p style="margin-bottom:10px">${line}</p>` : '';
-      }).join('');
+      renderScriptureText(scriptureBody, scriptureText);
     } else {
-      scriptureBody.innerHTML = '<span style="color:rgba(255,255,255,.3)">（經文準備中）</span>';
+      scriptureBody.innerHTML = '<span style="color:rgba(255,255,255,.3)">載入經文中…</span>';
+      fetchFHLScripture(r.passage, r.date).then(text => {
+        if (text) renderScriptureText(scriptureBody, text);
+        else scriptureBody.innerHTML = '<span style="color:rgba(255,255,255,.3)">（經文準備中）</span>';
+      });
     }
     document.getElementById('navigation').textContent = r.navigation;
     document.getElementById('practice-god').textContent = r.practiceGod;
