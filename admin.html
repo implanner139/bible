@@ -415,7 +415,8 @@ const MONTH_KEYS = {1:'january',2:'february',3:'march',4:'april',5:'may',6:'june
   7:'july',8:'august',9:'september',10:'october',11:'november',12:'december'};
 
 function isMetaKey(key) {
-  return key === 'PLAN_INTRO' || key.startsWith('PLAN_TITLE_') || key.startsWith('PLAN_SUBTITLE_');
+  return key === 'PLAN_INTRO' || key === 'PLAN_TITLE' || key === 'PLAN_SUBTITLE' ||
+         key.startsWith('PLAN_TITLE_') || key.startsWith('PLAN_SUBTITLE_');
 }
 
 // ── helpers for new 5-column format ──────────────────────────────────
@@ -484,8 +485,12 @@ function handleCSV(text, filename) {
   }
 
   // Parse meta — support any PLAN_TITLE_XXX / PLAN_SUBTITLE_XXX
+  // Collect global title/subtitle (PLAN_TITLE without section suffix)
+  let globalTitle = '', globalSubtitle = '';
   metaRows.forEach(({ key, value }) => {
     if (key === 'PLAN_INTRO') { planMeta.intro = value; return; }
+    if (key === 'PLAN_TITLE') { globalTitle = value; return; }
+    if (key === 'PLAN_SUBTITLE') { globalSubtitle = value; return; }
     if (key.startsWith('PLAN_TITLE_')) {
       const sec = key.replace('PLAN_TITLE_', '').toLowerCase();
       planMeta.sections[sec] = planMeta.sections[sec] || { title:'', subtitle:'' };
@@ -567,11 +572,22 @@ function handleCSV(text, filename) {
     csvSections[r.section].push(r);
   });
 
-  // Apply auto-detected plain title to sections that have no explicit PLAN_TITLE_*
+  // Apply global PLAN_TITLE / PLAN_SUBTITLE to sections without explicit per-section title
+  if (globalTitle || globalSubtitle) {
+    Object.keys(csvSections).forEach(sec => {
+      if (!planMeta.sections[sec]) planMeta.sections[sec] = { title: '', subtitle: '' };
+      if (globalTitle && !planMeta.sections[sec].title) planMeta.sections[sec].title = globalTitle;
+      if (globalSubtitle && !planMeta.sections[sec].subtitle) planMeta.sections[sec].subtitle = globalSubtitle;
+    });
+    if (!planMeta.intro) planMeta.intro = globalTitle;
+  }
+
+  // Fallback: auto-detected plain title row (first non-meta non-header text row)
   if (plainTitle) {
     Object.keys(csvSections).forEach(sec => {
       if (!planMeta.sections[sec]) planMeta.sections[sec] = { title: plainTitle, subtitle: '' };
     });
+    if (!planMeta.intro) planMeta.intro = plainTitle;
   }
 
   const secSummary = Object.entries(csvSections)
