@@ -197,12 +197,7 @@
 
   <!-- Date picker -->
   <div>
-    <div id="june-section">
-      <div class="section-label px-1">靈魂的室內設計師 · 六月</div>
-      <div id="june-grid" class="grid grid-cols-7 gap-1.5 mb-3"></div>
-    </div>
-    <div class="section-label px-1">31天與保羅一起解鎖生命新視角 · 七月</div>
-    <div id="date-grid" class="grid grid-cols-7 gap-1.5"></div>
+    <div id="all-grids"></div>
     <div class="flex items-center gap-5 mt-3 px-1">
       <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(201,168,76,.2);border:1px solid rgba(201,168,76,.4)"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">已完成</span></div>
       <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-md" style="background:rgba(201,168,76,.25);border:1px solid #c9a84c"></div><span class="text-xs" style="color:rgba(232,232,240,.4)">今天</span></div>
@@ -318,7 +313,8 @@ const PLAN_META = {
   intro: ""
 };
 
-const JUNE_READINGS = [
+const PLAN_DATA = {
+  june: [
   { date:"6/23", day:54, book:"以西結書", passage:"以西結書 42 章",
     focus:"分別為聖，生命中需要保留神聖的空間",
     navigation:"這章描述了聖殿周圍的聖屋與間隔。測量者的目的不只是建造，更是要將神聖的和世俗的分別開來。在室內設計師的眼中，空間的功能分區非常重要。同樣地，在靈魂更新的過程中，上帝要教導我們建立界線，保護我們生命中的神聖空間，不被世俗的紛擾侵蝕。這種分別為聖不是孤立，而是為了保持對上帝的專注與敬畏。當我們懂得分辨什麼是屬神的、什麼是世俗的時候，我們的生命就會展現出一種清透的力量。",
@@ -368,9 +364,8 @@ const JUNE_READINGS = [
     practicePeople:"",
     prayer:"主啊，感謝祢最終的心意是與人同住。願我的人生這座城被稱為耶和華的所在；不論環境如何，求祢使我確信祢永不離開。阿們。",
     verse:"「從那日以後，這城的名字必稱為：耶和華的所在。」（以西結書 48:35）", tags:"#耶和華的所在 #同在" },
-];
-
-const READINGS = [
+  ],
+  july: [
   { date:"7/1",  day:1,  book:"羅馬書",  passage:"羅馬書 1:1-32",  focus:"福音是神的大能，能徹底翻轉你的人生底牌。", navigation:"保羅一開頭就將福音定義為一種顛覆性的力量。現代人常在各種評鑑、KPI中尋找自我認同，但福音告訴我們，人的根本困境不在於技巧不足，而是與生命的源頭斷了連結，導致生活秩序的崩潰。當我們試圖用受造物代替造物主時，內心就會陷入無底的焦慮。福音不是一套修身養性的道德規範，而是上帝主動介入歷史、更新人類命運的「最強外掛」，只要你願意相信，生命就能在最絕望處重新開機。", practiceGod:"在今天找一個安靜的5分鐘，向神承認自己常想靠自己掌控一切的驕傲，宣告祂才是你生命的主宰。", practicePeople:"留意身邊一位正處於高度焦慮或低潮的朋友，不說教，單純傳一則訊息表達關心並為他祝福。", prayer:"主啊，我承認常想用自己的好表現來證明自己，導致內心充滿焦慮。謝謝祢用福音的大能拯救我，今天我宣告祢是我生命的主，求祢的大能翻轉我的底牌，讓我靠著祢的愛活出新生的盼望。阿們。", verse:"「我不以福音為恥；這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）", tags:"#大能 #破曉 #核心重啟" },
   { date:"7/2",  day:2,  book:"羅馬書",  passage:"羅馬書 2:1-29",  focus:"信仰不是外在的標籤，而是內心深處的誠實。", navigation:"保羅撕下了宗教人士的虛假面具。在社群媒體發達的今天，我們太擅長「打造精美的人設」，甚至在信仰上也會用流水線式的宗教行為來包裝自己，並以此評斷他人。然而，神看重的從來不是外在的儀式或完美的宗教履歷，而是那顆在無人看見時依然對祂誠實的「心割禮」。真正的信仰會讓我們放下定罪別人的放大鏡，拿起省察自己的鏡子，在神的聖潔光照中，看見自己對恩典的真實渴望。", practiceGod:"寫下一件你隱藏很久、不敢面對的軟弱，在禱告中赤露敞開地交給神，體驗祂不控訴的接納。", practicePeople:"今天刻意不對任何人的行為下主觀評論，當你想批評人時，轉為在心裡為對方的需要默默代禱。", prayer:"阿爸神，求祢赦免我常在人前包裝自己、在人後論斷他人的虛偽。求聖靈今天為我的心行割禮，讓我脫去偽裝，單單在祢面前赤露敞開，得著最真實的恩典與接納。阿們。", verse:"「因為外面作猶太人的，不是真猶太人……惟有裡面作的，才是真猶太人。」（羅馬書 2:28-29）", tags:"#鏡子 #真實 #心靈祭壇" },
   { date:"7/3",  day:3,  book:"羅馬書",  passage:"羅馬書 3:1-31",  focus:"在絕望的底線前，神的恩典為你無條件買單。", navigation:"這章經文揭示了人類最核心的財務危機：罪的破產。無論道德高尚還是放蕩不羈，在神的絕對公義面前，所有人都拿不出及格的生命成績單。但最美妙的轉折就在於「如今」——耶穌基督用祂的生命作為贖價，在十字架上為我們付清了所有債務。這就是「因信稱義」，它是免費的，卻是極其昂貴的代價換來的。現代人總覺得天下沒有白吃的午餐，但上帝偏偏要把這份宇宙間最珍貴的救恩，白白送給願意伸出信心之手接受的你。", practiceGod:"大聲宣告自己已經因信稱義，不再受控告，並用讚美感謝耶穌為你承擔了一切的罪責。", practicePeople:"在人際關係中實踐一次「免債」，主動原諒一位曾冒犯你、或在言語上對不起你的同事或家人。", prayer:"主耶穌，謝謝祢在十字架上為我那破產的生命全然買單。當我面對自責與控告時，求祢讓我有信心抓住「因信稱義」的白白恩典。也求祢賜我寬廣的心，今天能主動原諒冒犯我的人。阿們。", verse:"「如今卻蒙神的恩典，因基督耶穌的救贖，就白白地稱義。」（羅馬書 3:24）", tags:"#代價 #白白得來 #十字架" },
@@ -402,7 +397,8 @@ const READINGS = [
   { date:"7/29", day:29, book:"腓立比書", passage:"腓立比書 3:1-21", focus:"丟棄過去的偶像與履歷，忘記背後努力向著標竿直跑。", navigation:"保羅在這章大膽地丟出了他的靈性斷捨離。他列舉了自己過去引以為傲的宗教履歷（純種猶太人、法利賽人、律法上的無可指責），但隨後他宣告：為了認識耶穌，他已經把這一切看作「糞土（垃圾）」。現代人身上貼滿了各種標籤：名校畢業、高薪職位、完美外表，我們常被這些標籤給綁架。保羅教導我們，最崇高的知識就是認識基督。不要沉溺於過去的成功，也不要被過去的失敗捆綁，拍拍灰塵，忘記背後，努力面前的，向著神在基督裡召你拿的天國獎賞直跑！", practiceGod:"拿出一張紙，寫下你目前最引以為傲的外在成就（或最讓你自卑的過去），在禱告中宣告：與認識基督相比，這一切都微不足道。", practicePeople:"關懷一位正沉溺於過去失敗陰影、或者正因中年危機失去方向的肢體，陪伴他一起尋找神在前方為他預備的生命標竿。", prayer:"主耶穌，與認識祢這至高至美的至寶相比，世上的名利標籤皆是糞土。求祢給我屬靈的勇氣進行靈性斷捨離，讓我徹底忘記背後的成就與失敗，拍拍灰塵，雙眼單單注視天國標竿，全力奔跑。阿們。", verse:"「我只有一件事，就是忘記背後，努力面前的，向著標竿直跑。」（腓立比書 3:13-14）", tags:"#靈性斷捨離 #向著標竿直跑 #天國公民" },
   { date:"7/30", day:30, book:"腓立比書", passage:"腓立比書 4:1-23", focus:"靠著加力量的基督，在任何環境中都能學會知足的秘訣。", navigation:"這是腓立比書充滿力量與安慰的終章。保羅留下了那句激勵無數人的終極應許：「我靠著那加給我力量的，凡事都能做。」但請注意，這句話的上下文不是世俗的成功學，而是關乎「靈性的知足」。現代社會充斥著比較與消費主義，不斷激發我們靈魂的飢餓感。保羅卻在監獄中親自示範，無論是處豐富還是處卑賤，他都得著了隨事隨在的秘訣。這是一種由內而外的強大，因為有一位神會照祂榮耀的豐富，在基督裡滿足你一切的需要。", practiceGod:"面對未來未知的生活挑戰，在神面前宣告：「主啊，靠著祢賜的力量，我宣告我能帶著喜樂與知足勝過一切。」", practicePeople:"實踐「彼此幫貼」，今天慷慨地給予身邊某位在經濟、或事工上需要資源的肢體一筆實際的奉獻或實質的援助。", prayer:"凡事都能的主，當消費主義與比較不斷激發我靈魂的飢餓時，求祢用祢榮耀的豐富填滿我。我宣告靠著祢賜的力量，在任何高山低谷中我都學會了知足，並樂意以慷慨的支援，成為他人豐富的祝福。阿們。", verse:"「我靠著那加給我力量的，凡事都能做。」（腓立比書 4:13）", tags:"#凡事都能 #靈性知足 #神聖燃料" },
   { date:"7/31", day:31, book:"腓利門書", passage:"腓利門書 1:1-25", focus:"福音突破階級屏障，在基督裡用愛修復破碎的關係。", navigation:"這卷短短的私人信件，展示了福音落地在人際關係中時最震撼的張力。保羅在獄中帶領了逃跑的奴隸阿尼西謀信主，隨後他寫信給奴隸主腓利門，懇求他不僅要饒恕阿尼西謀，更要「接納他如同親愛的弟兄」。在當時羅馬帝國階級森嚴、逃奴會被判死刑的背景下，這簡直是顛覆社會結構的要求。這讓我們看見，真正的基督教信仰不只是個人的修養，更是能在受損、背叛與破碎的社會關係中，帶來完全的和好與恢復。", practiceGod:"感謝神在我們還是得罪祂的「逃奴」時，就藉著耶穌接待我們。求神賜下天國的愛，來擴張自己饒恕他人的容量。", practicePeople:"思想在你目前的人際網絡中，是否有一個長久疏離、或曾傷害過你的「阿尼西謀」？主動在心中饒恕他，並在今天傳一則簡單平安的問候給對方，跨出和好的第一步。", prayer:"恩典和好的神，謝謝祢在我們還是罪惡逃奴時，就張開雙臂接納我們成為親愛的兒女。求祢除去我心中深藏的怨恨高牆，賜我突破階級與傷害的愛，主動去饒恕、修復那段受損的關係，讓生命重歸和好。阿們。", verse:"「他不再是奴僕，乃是高過奴僕，是親愛的兄弟。」（腓利門書 1:16）", tags:"#恩典和好 #不再是奴僕 #打破高牆" },
-];
+  ]
+};
 
 const SCRIPTURE = {
   '6/23': `42:1 他帶我出來向北，進到外院，帶我到那些對著空地、對著北邊樓房的聖屋那裡。
@@ -1449,44 +1445,49 @@ function saveReadDays() {
 function dayKey(sec, idx) { return sec + '-' + idx; }
 const readDays = loadReadDays();
 
-let currentSection = 'july'; // 'june' or 'july'
+let currentSection = 'july';
 let currentIndex = 0;
 let currentTab = 'scripture';
 
 function getTodayInfo() {
   const now = new Date();
-  const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
-  // Before June 23, 2026 → nothing unlocked
-  if (y < 2026 || (y === 2026 && m < 6) || (y === 2026 && m === 6 && d < 23)) {
-    return { section: 'july', index: -2 };
+  const m = now.getMonth() + 1, d = now.getDate();
+  const todayStr = `${m}/${d}`;
+  const sections = Object.keys(PLAN_DATA);
+  // Search for today's date in each section
+  for (const sec of sections) {
+    const idx = PLAN_DATA[sec].findIndex(r => r.date === todayStr);
+    if (idx !== -1) return { section: sec, index: idx };
   }
-  // June 23–29, 2026
-  if (y === 2026 && m === 6) {
-    return { section: 'june', index: Math.min(d - 23, 6) };
+  // Not found — determine if before everything or after
+  const allEntries = [];
+  for (const sec of sections) {
+    PLAN_DATA[sec].forEach((r, i) => {
+      const [rm, rd] = r.date.split('/').map(Number);
+      allEntries.push({ sec, i, val: rm * 100 + rd });
+    });
   }
-  // After July 2026 → all unlocked
-  if (y > 2026 || (y === 2026 && m > 7)) {
-    return { section: 'july', index: 30 };
-  }
-  // During July 2026
-  return { section: 'july', index: d - 1 };
+  if (!allEntries.length) return { section: sections[0] || 'july', index: -2 };
+  const todayVal = m * 100 + d;
+  if (todayVal < allEntries[0].val) return { section: sections[0], index: -2 };
+  const last = allEntries[allEntries.length - 1];
+  return { section: last.sec, index: last.i };
 }
 
 const todayInfo = getTodayInfo();
 
 function isAvailable(section, i) {
   if (todayInfo.index === -2) return false;
-  if (section === 'june') {
-    if (todayInfo.section === 'july') return true; // all June unlocked once July starts
-    return i <= todayInfo.index;
-  }
-  // July
-  if (todayInfo.section === 'june') return false; // July not started yet
+  const sections = Object.keys(PLAN_DATA);
+  const todaySecIdx = sections.indexOf(todayInfo.section);
+  const thisSecIdx  = sections.indexOf(section);
+  if (thisSecIdx < todaySecIdx) return true;
+  if (thisSecIdx > todaySecIdx) return false;
   return i <= todayInfo.index;
 }
 
 function currentReading() {
-  return currentSection === 'june' ? JUNE_READINGS[currentIndex] : READINGS[currentIndex];
+  return (PLAN_DATA[currentSection] || [])[currentIndex];
 }
 
 function isTodaySelected() {
@@ -1585,44 +1586,43 @@ function render() {
   document.getElementById('btn-today').classList.toggle('hidden', todayInfo.index === -2 || isTodaySelected());
   renderNotes();
 
-  // June grid
-  const juneGrid = document.getElementById('june-grid');
-  juneGrid.innerHTML = '';
-  JUNE_READINGS.forEach((rd, i) => {
-    const avail = isAvailable('june', i);
-    const isT = todayInfo.section === 'june' && i === todayInfo.index;
-    const isRead = readDays.has(dayKey('june', i));
-    const sel = currentSection === 'june' && i === currentIndex;
-    const btn = document.createElement('button');
-    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
-    btn.style.minHeight = '42px';
-    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('6/','')}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
-    if (avail) {
-      btn.onclick = () => { currentSection = 'june'; currentIndex = i; currentTab = 'scripture'; render(); };
-    } else {
-      btn.title = '尚未解鎖';
-    }
-    juneGrid.appendChild(btn);
-  });
-
-  // July grid
-  const grid = document.getElementById('date-grid');
-  grid.innerHTML = '';
-  READINGS.forEach((rd, i) => {
-    const avail = isAvailable('july', i);
-    const isT = todayInfo.section === 'july' && i === todayInfo.index;
-    const isRead = readDays.has(dayKey('july', i));
-    const sel = currentSection === 'july' && i === currentIndex;
-    const btn = document.createElement('button');
-    btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
-    btn.style.minHeight = '42px';
-    btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${rd.date.replace('7/','')}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
-    if (avail) {
-      btn.onclick = () => { currentSection = 'july'; currentIndex = i; currentTab = 'scripture'; render(); };
-    } else {
-      btn.title = '尚未解鎖';
-    }
-    grid.appendChild(btn);
+  // Dynamically render all section grids
+  const allGridsEl = document.getElementById('all-grids');
+  allGridsEl.innerHTML = '';
+  const MONTH_ZH = { january:'一月', february:'二月', march:'三月', april:'四月',
+    may:'五月', june:'六月', july:'七月', august:'八月', september:'九月',
+    october:'十月', november:'十一月', december:'十二月' };
+  Object.entries(PLAN_DATA).forEach(([sec, readings]) => {
+    const meta = PLAN_META[sec];
+    const monthLabel = MONTH_ZH[sec] || sec;
+    const label = meta ? `${meta.title} · ${monthLabel}` : monthLabel;
+    const secDiv = document.createElement('div');
+    secDiv.className = 'mb-3';
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'section-label px-1';
+    labelDiv.textContent = label;
+    const gridDiv = document.createElement('div');
+    gridDiv.className = 'grid grid-cols-7 gap-1.5';
+    readings.forEach((rd, i) => {
+      const avail = isAvailable(sec, i);
+      const isT   = todayInfo.section === sec && i === todayInfo.index;
+      const isRead = readDays.has(dayKey(sec, i));
+      const sel    = currentSection === sec && i === currentIndex;
+      const btn = document.createElement('button');
+      btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
+      btn.style.minHeight = '42px';
+      const dateDisplay = rd.date.replace(/^\d+\//, '');
+      btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${dateDisplay}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
+      if (avail) {
+        btn.onclick = () => { currentSection = sec; currentIndex = i; currentTab = 'scripture'; render(); };
+      } else {
+        btn.title = '尚未解鎖';
+      }
+      gridDiv.appendChild(btn);
+    });
+    secDiv.appendChild(labelDiv);
+    secDiv.appendChild(gridDiv);
+    allGridsEl.appendChild(secDiv);
   });
 
   switchTabUI(currentTab);
@@ -1644,32 +1644,28 @@ function switchTabUI(tab) {
 }
 
 function navigate(dir) {
+  const sections = Object.keys(PLAN_DATA);
+  const secIdx = sections.indexOf(currentSection);
   if (dir === -1) {
-    if (currentSection === 'june' && currentIndex === 0) return;
-    if (currentSection === 'july' && currentIndex === 0) {
-      // Go to last available June day
-      const maxJune = todayInfo.section === 'june' ? todayInfo.index : 6;
-      if (isAvailable('june', maxJune)) {
-        currentSection = 'june'; currentIndex = maxJune;
-        currentTab = 'scripture'; render(); window.scrollTo({top:0, behavior:'smooth'});
-      }
-      return;
-    }
-    const prev = currentIndex - 1;
-    if (!isAvailable(currentSection, prev)) return;
-    currentIndex = prev;
+    if (currentIndex > 0) {
+      if (!isAvailable(currentSection, currentIndex - 1)) return;
+      currentIndex--;
+    } else if (secIdx > 0) {
+      const prevSec = sections[secIdx - 1];
+      const lastIdx = PLAN_DATA[prevSec].length - 1;
+      if (!isAvailable(prevSec, lastIdx)) return;
+      currentSection = prevSec; currentIndex = lastIdx;
+    } else return;
   } else {
-    if (currentSection === 'june') {
-      if (currentIndex < 6 && isAvailable('june', currentIndex + 1)) {
-        currentIndex++;
-      } else if (currentIndex === 6 && isAvailable('july', 0)) {
-        currentSection = 'july'; currentIndex = 0;
-      } else return;
-    } else {
-      const next = currentIndex + 1;
-      if (next > 30 || !isAvailable('july', next)) return;
-      currentIndex = next;
-    }
+    const data = PLAN_DATA[currentSection] || [];
+    if (currentIndex < data.length - 1) {
+      if (!isAvailable(currentSection, currentIndex + 1)) return;
+      currentIndex++;
+    } else if (secIdx < sections.length - 1) {
+      const nextSec = sections[secIdx + 1];
+      if (!isAvailable(nextSec, 0)) return;
+      currentSection = nextSec; currentIndex = 0;
+    } else return;
   }
   currentTab = 'scripture';
   render();
@@ -1700,8 +1696,9 @@ function goToday() {
 })();
 
 // Init: start on today's reading
+const _sections = Object.keys(PLAN_DATA);
 if (todayInfo.index === -2) {
-  currentSection = 'june'; currentIndex = 0;
+  currentSection = _sections[0] || 'july'; currentIndex = 0;
 } else {
   currentSection = todayInfo.section;
   currentIndex = todayInfo.index;

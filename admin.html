@@ -169,20 +169,13 @@
 
         <!-- Data rows -->
         <div>
-          <p class="text-xs font-bold text-white mb-1.5">▸ 後面幾行：每日讀經資料</p>
+          <p class="text-xs font-bold text-white mb-1.5">▸ 後面幾行：每日讀經資料（5 欄）</p>
           <div class="grid grid-cols-1 gap-1 text-xs text-gray-400 pl-3">
-            <div><span class="text-white font-bold">section</span> — <span class="tag tag-june">june</span> 或 <span class="tag tag-july">july</span></div>
-            <div><span class="text-white font-bold">date</span> — 6/23 或 7/1</div>
-            <div><span class="text-white font-bold">day</span> — 第幾天（數字）</div>
-            <div><span class="text-white font-bold">book</span> — 書卷，如：羅馬書</div>
-            <div><span class="text-white font-bold">passage</span> — 經文範圍，如：羅馬書 1:1-32</div>
-            <div><span class="text-white font-bold">focus</span> — 每日重點（短句）</div>
-            <div><span class="text-white font-bold">navigation</span> — 真理導航（長段落，用引號包住）</div>
-            <div><span class="text-white font-bold">practiceGod</span> — 生活練習：愛神</div>
-            <div><span class="text-white font-bold">practicePeople</span> — 生活練習：愛人（可空白）</div>
-            <div><span class="text-white font-bold">prayer</span> — 今日禱告</div>
-            <div><span class="text-white font-bold">verse</span> — 今日金句</div>
-            <div><span class="text-white font-bold">tags</span> — 標籤，如：#信心 #盼望</div>
+            <div><span class="text-white font-bold">日期 (Day)</span> — 6/23 或 8/1（系統自動依月份判斷六月／七月）</div>
+            <div><span class="text-white font-bold">天數</span> — 第 X 天（如：第 54 天）</div>
+            <div><span class="text-white font-bold">經文進度</span> — 如：以賽亞書 1:1-全</div>
+            <div><span class="text-white font-bold">每日重點／真理導航／生活練習</span> — 整格用引號包住，內部用標籤分段：<br><span class="pl-2 text-gray-600">每日重點：／ 真理導航：／ 【愛神】／ 【愛人】／ 今日禱告：</span></div>
+            <div><span class="text-white font-bold">今日金句卡</span> — 金句文字 + 換行 + #標籤1 #標籤2（整格用引號包住）</div>
           </div>
         </div>
       </div>
@@ -390,11 +383,8 @@ function saveGhSettings() {
 let parsedRecords = [];
 let juneRecords   = [];
 let julyRecords   = [];
-let planMeta      = {
-  juneTitle:    '', juneSubtitle:    '',
-  julyTitle:    '', julySubtitle:    '',
-  intro:        ''
-};
+let csvSections   = {};   // { june:[...], august:[...], ... }
+let planMeta      = { sections: {}, intro: '' };
 
 // ═══════════════════════════════════════════════════════════════════
 //  Drag & drop
@@ -436,70 +426,152 @@ function parseCSVLine(line) {
   return result;
 }
 
-const META_KEYS = ['PLAN_TITLE_JUNE','PLAN_SUBTITLE_JUNE','PLAN_TITLE_JULY','PLAN_SUBTITLE_JULY','PLAN_INTRO'];
-const REQUIRED  = ['section','date','day','book','passage','focus','navigation','practiceGod','prayer','verse'];
+const MONTH_KEYS = {1:'january',2:'february',3:'march',4:'april',5:'may',6:'june',
+  7:'july',8:'august',9:'september',10:'october',11:'november',12:'december'};
+
+function isMetaKey(key) {
+  return key === 'PLAN_INTRO' || key.startsWith('PLAN_TITLE_') || key.startsWith('PLAN_SUBTITLE_');
+}
+
+// ── helpers for new 5-column format ──────────────────────────────────
+function sectionFromDate(dateStr) {
+  const m = (dateStr||'').match(/^(\d+)\//);
+  return m ? (MONTH_KEYS[parseInt(m[1])] || 'unknown') : 'unknown';
+}
+function parseDayNum(str) {
+  const m = (str||'').match(/\d+/);
+  return m ? parseInt(m[0]) : 0;
+}
+function bookFromPassage(passage) {
+  return (passage||'').replace(/[\s\d:（(].*/,'').trim();
+}
+function parseContentField(text) {
+  text = text||'';
+  const ex = (label, ends) => {
+    const si = text.indexOf(label);
+    if (si === -1) return '';
+    let s = text.slice(si + label.length), end = s.length;
+    ends.forEach(e => { const i = s.indexOf(e); if (i !== -1 && i < end) end = i; });
+    return s.slice(0, end).trim();
+  };
+  return {
+    focus:          ex('每日重點：', ['真理導航：','生活練習：','今日禱告：']),
+    navigation:     ex('真理導航：', ['生活練習：','今日禱告：']),
+    practiceGod:    ex('【愛神】',   ['【愛人】','今日禱告：']),
+    practicePeople: ex('【愛人】',   ['今日禱告：']),
+    prayer:         ex('今日禱告：', [])
+  };
+}
+function parseVerseField(text) {
+  const lines = (text||'').split('\n').map(l=>l.trim()).filter(l=>l);
+  const ti = lines.findIndex(l => l.startsWith('#'));
+  if (ti === -1) return { verse: (text||'').trim(), tags: '' };
+  return { verse: lines.slice(0, ti).join('').trim(), tags: lines.slice(ti).join(' ').trim() };
+}
+// ─────────────────────────────────────────────────────────────────────
 
 function handleCSV(text, filename) {
   if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l => l.trim());
+  const rawLines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
 
-  // Reset state
-  planMeta = { juneTitle:'', juneSubtitle:'', julyTitle:'', julySubtitle:'', intro:'' };
+  planMeta = { sections: {}, intro: '' };
   parsedRecords = []; juneRecords = []; julyRecords = [];
 
-  // Separate meta rows from header/data rows
+  // Find header row + collect meta rows
   let headerIdx = -1;
   const metaRows = [];
-  for (let i = 0; i < lines.length; i++) {
-    const cells = parseCSVLine(lines[i]);
-    const key   = (cells[0] || '').trim().toUpperCase();
-    if (META_KEYS.includes(key)) {
-      metaRows.push({ key, value: (cells[1] || '').trim() });
-    } else if (key === 'SECTION') {
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i].trim();
+    if (!line) continue;
+    const cells = parseCSVLine(rawLines[i]);
+    const key   = (cells[0]||'').trim().toUpperCase().replace(/\s+/g,'_');
+    if (isMetaKey(key)) {
+      metaRows.push({ key, value: (cells[1]||'').trim() });
+    } else if (key === 'SECTION' || (cells[0]||'').trim().startsWith('日期')) {
       headerIdx = i;
       break;
     }
   }
 
-  // Parse meta
+  // Parse meta — support any PLAN_TITLE_XXX / PLAN_SUBTITLE_XXX
   metaRows.forEach(({ key, value }) => {
-    if (key === 'PLAN_TITLE_JUNE')    planMeta.juneTitle    = value;
-    if (key === 'PLAN_SUBTITLE_JUNE') planMeta.juneSubtitle = value;
-    if (key === 'PLAN_TITLE_JULY')    planMeta.julyTitle    = value;
-    if (key === 'PLAN_SUBTITLE_JULY') planMeta.julySubtitle = value;
-    if (key === 'PLAN_INTRO')         planMeta.intro        = value;
+    if (key === 'PLAN_INTRO') { planMeta.intro = value; return; }
+    if (key.startsWith('PLAN_TITLE_')) {
+      const sec = key.replace('PLAN_TITLE_', '').toLowerCase();
+      planMeta.sections[sec] = planMeta.sections[sec] || { title:'', subtitle:'' };
+      planMeta.sections[sec].title = value;
+    }
+    if (key.startsWith('PLAN_SUBTITLE_')) {
+      const sec = key.replace('PLAN_SUBTITLE_', '').toLowerCase();
+      planMeta.sections[sec] = planMeta.sections[sec] || { title:'', subtitle:'' };
+      planMeta.sections[sec].subtitle = value;
+    }
   });
 
-  // Parse data rows
   if (headerIdx < 0) {
-    showUploadStatus('找不到資料欄位列（應該包含「section」欄位），請確認 CSV 格式正確。', 'err');
+    showUploadStatus('找不到資料欄位列（需包含 section 或「日期」欄位），請確認格式正確。', 'err');
     return;
   }
 
-  const headers = parseCSVLine(lines[headerIdx]).map(h => h.trim());
-  const missing = REQUIRED.filter(f => !headers.includes(f));
-  if (missing.length) {
-    showUploadStatus(`CSV 缺少必要欄位：${missing.join(', ')}`, 'err');
-    return;
-  }
+  const headers = parseCSVLine(rawLines[headerIdx]).map(h => h.trim());
+  const isOldFormat = headers[0] === 'section';
 
-  const rows = lines.slice(headerIdx + 1).map(line => {
-    const vals = parseCSVLine(line);
-    const obj  = {};
-    headers.forEach((h, i) => { obj[h] = (vals[i] || '').trim(); });
-    return obj;
+  const ci = (...names) => {
+    for (const n of names) { const i = headers.findIndex(h => h.includes(n)); if (i !== -1) return i; }
+    return -1;
+  };
+
+  const idxDate    = isOldFormat ? ci('date')     : ci('日期');
+  const idxDay     = isOldFormat ? ci('day')      : ci('天數');
+  const idxPassage = isOldFormat ? ci('passage')  : ci('經文進度');
+  const idxContent = isOldFormat ? -1             : ci('每日重點');
+  const idxVerse   = isOldFormat ? ci('verse')    : ci('今日金句');
+
+  const dataLines = rawLines.slice(headerIdx + 1).filter(l => l.trim());
+  dataLines.forEach(line => {
+    const cells = parseCSVLine(line);
+    const dateStr = (cells[idxDate]||'').trim();
+    if (!dateStr) return;
+
+    let r;
+    if (isOldFormat) {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = (cells[i]||'').trim(); });
+      r = {
+        section: obj.section||'july', date: dateStr,
+        day: parseInt(obj.day)||0, book: obj.book||'', passage: obj.passage||'',
+        focus: obj.focus||'', navigation: obj.navigation||'',
+        practiceGod: obj.practiceGod||'', practicePeople: obj.practicePeople||'',
+        prayer: obj.prayer||'', verse: obj.verse||'', tags: obj.tags||''
+      };
+    } else {
+      const passage  = (cells[idxPassage]||'').trim();
+      const parsed   = parseContentField(cells[idxContent]||'');
+      const vp       = parseVerseField(cells[idxVerse]||'');
+      r = {
+        section: sectionFromDate(dateStr), date: dateStr,
+        day: parseDayNum(cells[idxDay]||''), book: bookFromPassage(passage), passage,
+        focus: parsed.focus, navigation: parsed.navigation,
+        practiceGod: parsed.practiceGod, practicePeople: parsed.practicePeople,
+        prayer: parsed.prayer, verse: vp.verse, tags: vp.tags
+      };
+    }
+
+    parsedRecords.push(r);
+    if (r.section === 'june') juneRecords.push(r);
+    else if (r.section === 'july') julyRecords.push(r);
   });
 
-  parsedRecords = rows.filter(r => r.section === 'june' || r.section === 'july');
-  juneRecords   = parsedRecords.filter(r => r.section === 'june');
-  julyRecords   = parsedRecords.filter(r => r.section === 'july');
+  // Build per-section map for all sections in this CSV
+  csvSections = {};
+  parsedRecords.forEach(r => {
+    if (!csvSections[r.section]) csvSections[r.section] = [];
+    csvSections[r.section].push(r);
+  });
 
-  const skipped = rows.length - parsedRecords.length;
-  showUploadStatus(
-    `✓ 已解析「${filename}」— ${parsedRecords.length} 筆讀經資料（June: ${juneRecords.length}，July: ${julyRecords.length}）` +
-    (skipped > 0 ? `，略過 ${skipped} 筆無效 section` : ''),
-    'ok'
-  );
+  const secSummary = Object.entries(csvSections)
+    .map(([s, rs]) => `${s}: ${rs.length} 天`).join('，');
+  showUploadStatus(`✓ 已解析「${filename}」— ${parsedRecords.length} 筆（${secSummary}）`, 'ok');
 
   renderMetaPreview();
   renderPreview();
@@ -524,13 +596,13 @@ function renderMetaPreview() {
   const row = (label, val) => val
     ? `<div class="flex gap-2 text-sm"><span class="text-gray-500 w-36 flex-shrink-0">${label}</span><span class="text-white">${val}</span></div>`
     : `<div class="flex gap-2 text-sm"><span class="text-gray-500 w-36 flex-shrink-0">${label}</span><span class="text-gray-600 italic">（空白）</span></div>`;
-  el.innerHTML = [
-    row('六月系列名稱', planMeta.juneTitle),
-    row('六月副標',     planMeta.juneSubtitle),
-    row('七月系列名稱', planMeta.julyTitle),
-    row('七月副標',     planMeta.julySubtitle),
-    row('計畫簡介',     planMeta.intro ? planMeta.intro.slice(0, 80) + (planMeta.intro.length > 80 ? '…' : '') : ''),
-  ].join('');
+  const rows = [];
+  Object.entries(planMeta.sections).forEach(([sec, m]) => {
+    rows.push(row(`${sec} 名稱`, m.title));
+    rows.push(row(`${sec} 副標`, m.subtitle));
+  });
+  rows.push(row('計畫簡介', planMeta.intro ? planMeta.intro.slice(0, 80) + (planMeta.intro.length > 80 ? '…' : '') : ''));
+  el.innerHTML = rows.join('');
 }
 
 function trunc(s, n) { return !s ? '—' : s.length > n ? s.slice(0, n) + '…' : s; }
@@ -540,11 +612,8 @@ function renderPreview() {
   tbody.innerHTML = '';
   parsedRecords.forEach(r => {
     const tr = document.createElement('tr');
-    const tag = r.section === 'june'
-      ? '<span class="tag tag-june">六月</span>'
-      : '<span class="tag tag-july">七月</span>';
     tr.innerHTML = `
-      <td>${tag}</td>
+      <td><span class="tag tag-july">${r.section}</span></td>
       <td>${r.date||'—'}</td><td>${r.day||'—'}</td>
       <td>${trunc(r.book,8)}</td><td>${trunc(r.passage,14)}</td>
       <td title="${esc4attr(r.focus)}">${trunc(r.focus,18)}</td>
@@ -553,8 +622,9 @@ function renderPreview() {
       <td title="${esc4attr(r.verse)}">${trunc(r.verse,22)}</td>`;
     tbody.appendChild(tr);
   });
+  const secSummary = Object.entries(csvSections).map(([s,rs])=>`${s} ${rs.length} 天`).join(' · ');
   document.getElementById('preview-stats').textContent =
-    `共 ${parsedRecords.length} 筆 · 六月 ${juneRecords.length} 天 · 七月 ${julyRecords.length} 天 · 滑鼠移到欄位可看完整內容`;
+    `共 ${parsedRecords.length} 筆 · ${secSummary} · 滑鼠移到欄位可看完整內容`;
 }
 
 function esc4attr(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -582,22 +652,24 @@ function recordsToJS(records) {
   }).join(',\n');
 }
 
-function generatePlanMetaCode() {
-  return (
-    `const PLAN_META = {\n` +
-    `  june:  { title:"${escStr(planMeta.juneTitle)}", subtitle:"${escStr(planMeta.juneSubtitle)}" },\n` +
-    `  july:  { title:"${escStr(planMeta.julyTitle)}", subtitle:"${escStr(planMeta.julySubtitle)}" },\n` +
-    `  intro: "${escStr(planMeta.intro)}"\n` +
-    `};`
-  );
+function generatePlanMetaCode(mergedMeta) {
+  const m = mergedMeta || planMeta;
+  const secLines = Object.entries(m.sections).map(([sec, v]) =>
+    `  ${sec}: { title:"${escStr(v.title)}", subtitle:"${escStr(v.subtitle)}" }`
+  ).join(',\n');
+  return `const PLAN_META = {\n${secLines},\n  intro: "${escStr(m.intro)}"\n};`;
+}
+
+function generatePlanDataCode(mergedData) {
+  const data = mergedData || csvSections;
+  const secLines = Object.entries(data).map(([sec, records]) =>
+    `  ${sec}: [\n${recordsToJS(records)}\n  ]`
+  ).join(',\n');
+  return `const PLAN_DATA = {\n${secLines}\n};`;
 }
 
 function generateJSSnippet() {
-  return (
-    generatePlanMetaCode() + '\n\n' +
-    `const JUNE_READINGS = [\n${recordsToJS(juneRecords)}\n];\n\n` +
-    `const READINGS = [\n${recordsToJS(julyRecords)}\n];`
-  );
+  return generatePlanMetaCode() + '\n\n' + generatePlanDataCode();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -646,28 +718,42 @@ async function pushToGitHub() {
         .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')
     );
 
-    setStatus('info', '<span class="spin">⚙</span> 正在替換讀經資料…');
+    setStatus('info', '<span class="spin">⚙</span> 正在合併讀經資料…');
+
+    // ── Smart merge: read existing PLAN_DATA & PLAN_META, overlay CSV sections ──
+    let existingData = {};
+    let existingMeta = { sections: {}, intro: '' };
+
+    const planDataMatch = currentContent.match(/const PLAN_DATA\s*=\s*(\{[\s\S]*?\n\});/);
+    if (planDataMatch) {
+      try { existingData = new Function('return ' + planDataMatch[1])(); } catch(e) {}
+    }
+    const planMetaMatch = currentContent.match(/const PLAN_META\s*=\s*(\{[\s\S]*?\n\});/);
+    if (planMetaMatch) {
+      try {
+        const em = new Function('return ' + planMetaMatch[1])();
+        Object.entries(em).forEach(([k, v]) => {
+          if (k === 'intro') existingMeta.intro = v;
+          else if (typeof v === 'object') existingMeta.sections[k] = v;
+        });
+      } catch(e) {}
+    }
+
+    // Merge: existing + CSV sections (CSV wins for sections it contains)
+    const mergedData = { ...existingData };
+    Object.entries(csvSections).forEach(([sec, records]) => { mergedData[sec] = records; });
+
+    const mergedMeta = { sections: { ...existingMeta.sections }, intro: planMeta.intro || existingMeta.intro };
+    Object.entries(planMeta.sections).forEach(([sec, v]) => { mergedMeta.sections[sec] = v; });
 
     let newContent = currentContent;
-
-    // Replace PLAN_META
-    const metaPat = /const PLAN_META\s*=\s*\{[\s\S]*?\n\};/;
-    if (metaPat.test(newContent)) {
-      newContent = newContent.replace(metaPat, generatePlanMetaCode());
-    }
-    // Replace JUNE_READINGS
-    const junePat = /const JUNE_READINGS\s*=\s*\[[\s\S]*?\];/;
-    if (junePat.test(newContent)) {
-      newContent = newContent.replace(junePat, `const JUNE_READINGS = [\n${recordsToJS(juneRecords)}\n];`);
-    }
-    // Replace READINGS
-    const readPat = /const READINGS\s*=\s*\[[\s\S]*?\];/;
-    if (readPat.test(newContent)) {
-      newContent = newContent.replace(readPat, `const READINGS = [\n${recordsToJS(julyRecords)}\n];`);
-    }
+    const metaPat  = /const PLAN_META\s*=\s*\{[\s\S]*?\n\};/;
+    const dataPat  = /const PLAN_DATA\s*=\s*\{[\s\S]*?\n\};/;
+    if (metaPat.test(newContent)) newContent = newContent.replace(metaPat, generatePlanMetaCode(mergedMeta));
+    if (dataPat.test(newContent))  newContent = newContent.replace(dataPat, generatePlanDataCode(mergedData));
 
     if (newContent === currentContent) {
-      throw new Error('替換後內容與原本相同，請確認 CSV 資料是否有正確填寫。');
+      throw new Error('替換後內容與原本相同，請確認 CSV 資料是否有正確填寫，且 index.html 包含 PLAN_DATA 區塊。');
     }
 
     setStatus('info', '<span class="spin">⚙</span> 正在推送到 GitHub…');
@@ -685,9 +771,9 @@ async function pushToGitHub() {
     });
     if (!putRes.ok) throw new Error(`推送失敗（${putRes.status}）：${(await putRes.json()).message}`);
 
+    const secSummary = Object.entries(csvSections).map(([s,rs])=>`${s} ${rs.length} 天`).join('、');
     setStatus('ok',
-      `✅ 推送成功！更新了計畫資料 + ${parsedRecords.length} 筆讀經內容（June ${juneRecords.length} 天、July ${julyRecords.length} 天）。` +
-      `GitHub Pages 約 1–2 分鐘後生效。`
+      `✅ 推送成功！新增／更新：${secSummary}，保留其他月份資料不變。GitHub Pages 約 1–2 分鐘後生效。`
     );
   } catch(err) {
     setStatus('err', `❌ ${err.message}`);
@@ -708,26 +794,68 @@ function setStatus(type, html) {
 // ═══════════════════════════════════════════════════════════════════
 
 function downloadTemplate() {
-  const lines = [
-    // Meta section
+  // 5-column new format matching user's existing CSV style
+  const row1content = [
+    '每日重點：[短句，如：看清生命混亂的根源，回到天父懷中重啟人生]',
+    '',
+    '真理導航：[在這裡填入真理導航的長段落，可多行，整格用引號包住即可。]',
+    '',
+    '生活練習：',
+    '【愛神】[愛神的具體行動，如：找一個安靜的10分鐘，帶著一句經文默想。]',
+    '【愛人】[愛人的具體行動（可留空）]',
+    '',
+    '今日禱告：[在這裡填入禱告內容。阿們。]'
+  ].join('\n');
+
+  const row1verse = [
+    '「[金句文字]」（以賽亞書 1:18）',
+    '#標籤1 #標籤2 #標籤3'
+  ].join('\n');
+
+  const row2content = [
+    '每日重點：福音是神的大能，能徹底翻轉你的人生底牌',
+    '',
+    '真理導航：在這裡填入真理導航的長段落...',
+    '',
+    '生活練習：',
+    '【愛神】今天花5分鐘感謝神這週的恩典。',
+    '【愛人】留意身邊一位需要鼓勵的朋友，傳訊息關心他。',
+    '',
+    '今日禱告：主啊，今天我宣告祢是我生命的主。阿們。'
+  ].join('\n');
+
+  const row2verse = [
+    '「這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）',
+    '#大能 #核心重啟'
+  ].join('\n');
+
+  const csvParts = [
     'PLAN_TITLE_JUNE,靈魂的室內設計師',
     'PLAN_SUBTITLE_JUNE,以西結書 42–48 章',
     'PLAN_TITLE_JULY,31天與保羅一起解鎖生命新視角',
     'PLAN_SUBTITLE_JULY,羅馬書 · 加拉太書 · 歌羅西書 · 腓立比書 · 腓利門書',
     'PLAN_INTRO,"在這裡填入計畫的完整簡介。可以是多句話的段落，請用引號包住整段文字。"',
     '',
-    // Data header
-    'section,date,day,book,passage,focus,navigation,practiceGod,practicePeople,prayer,verse,tags',
-    // Sample rows
-    'june,6/23,54,以西結書,以西結書 42 章,分別為聖—生命中需要保留神聖的空間,"在這裡填入真理導航的長段落。這段文字可以很長，不需要擔心換行，只要用引號包住整段即可。","今天找一個安靜時刻，重新劃定與神相處的界線。","（可空白）","主啊，求祢教我建立界線，不讓世俗侵入我與祢相處的空間。阿們。","「這牆是為了分別聖地與俗地。」（以西結書 42:20）",#界線 #分別為聖',
-    'july,7/1,1,羅馬書,羅馬書 1:1-32,福音是神的大能—能徹底翻轉你的人生底牌,"在這裡填入真理導航的長段落。","今天找5分鐘，向神承認自己常想靠自己掌控一切的驕傲。","留意一位正處於低潮的朋友，傳訊息表達關心。","主啊，今天我宣告祢是我生命的主。阿們。","「這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）",#大能 #核心重啟',
+    '日期 (Day),天數,經文進度,每日重點／真理導航／生活練習,今日金句卡',
+    csvRow(['6/23','第 54 天','以西結書 42 章', row1content, row1verse]),
+    csvRow(['7/1', '第 1 天', '羅馬書 1:1-32',  row2content, row2verse]),
   ];
-  const csv = '﻿' + lines.join('\n'); // BOM for Excel
+
+  const csv = '﻿' + csvParts.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'reading-plan-template.csv';
   a.click();
+}
+
+function csvRow(cells) {
+  return cells.map(c => {
+    if (c.includes('"') || c.includes(',') || c.includes('\n')) {
+      return '"' + c.replace(/"/g, '""') + '"';
+    }
+    return c;
+  }).join(',');
 }
 </script>
 </body>
