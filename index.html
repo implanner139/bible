@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>讀經計畫 | iM行動教會</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --ink: #000;
@@ -52,6 +55,14 @@
     #fs-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: #333; border-radius: 2px; outline: none; }
     #fs-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--gold); cursor: pointer; }
     #fs-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--gold); cursor: pointer; border: none; }
+    /* Auth */
+    #btn-login { width:34px;height:34px;border-radius:50%;background:#1a1a1a;border:1px solid #333;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;flex-shrink:0; }
+    #btn-login:hover { border-color:#555;background:#2a2a2a; }
+    #user-avatar-btn { width:34px;height:34px;border-radius:50%;background:var(--gold);color:#000;font-weight:900;font-size:13px;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0; }
+    /* Notes */
+    #notes-section { display:none; }
+    #notes-input { width:100%;background:transparent;border:none;color:rgba(255,255,255,.8);font-size:.85rem;font-family:-apple-system,'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif;line-height:1.9;resize:none;outline:none;min-height:80px; }
+    #notes-input::placeholder { color:rgba(255,255,255,.2); }
   </style>
 </head>
 <body class="min-h-screen">
@@ -69,6 +80,11 @@
         <div class="text-xl font-black text-white"><span id="hdr-done">0</span><span class="text-sm font-normal" style="color:rgba(232,232,240,.4)"> /38</span></div>
         <div id="hdr-subtitle" class="text-[10px] gold-text opacity-70">以西結 · 保羅書信</div>
       </div>
+      <!-- Login button -->
+      <button id="btn-login" onclick="googleSignIn()" title="登入以同步讀經記錄">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
+      <button id="user-avatar-btn" onclick="handleUserTap()" title="帳號"></button>
       <div class="relative w-10 h-10">
         <svg class="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
@@ -172,6 +188,13 @@
     </div>
   </div>
 
+  <!-- Notes (visible when logged in + day available) -->
+  <div id="notes-section" class="card px-5 py-4">
+    <div class="section-label mb-2">📝 今日筆記</div>
+    <textarea id="notes-input" placeholder="寫下今天的讀經心得…" oninput="onNotesInput()"></textarea>
+    <div id="notes-status" class="text-xs mt-1" style="color:rgba(255,255,255,.2);min-height:16px"></div>
+  </div>
+
   <!-- Date picker -->
   <div>
     <div id="june-section">
@@ -197,6 +220,98 @@
 </main>
 
 <script>
+// ─── Firebase ────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey: "AIzaSyAu-t1K18OaWGL3w8kUxU8r-tz_ughAnyE",
+  authDomain: "imbibleapp-5c371.firebaseapp.com",
+  projectId: "imbibleapp-5c371",
+  storageBucket: "imbibleapp-5c371.firebasestorage.app",
+  messagingSenderId: "283994530883",
+  appId: "1:283994530883:web:06f47313452a567f7c60f6"
+});
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+let currentUser   = null;
+let userNotes     = {};   // { dayKey: noteText }
+let cloudSaveTimer = null;
+
+function googleSignIn() {
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(e => console.error('Login error:', e.message));
+}
+
+function handleUserTap() {
+  if (!currentUser) return;
+  if (confirm(`登出 ${currentUser.email}？`)) auth.signOut();
+}
+
+auth.onAuthStateChanged(async user => {
+  currentUser = user;
+  const loginBtn  = document.getElementById('btn-login');
+  const avatarBtn = document.getElementById('user-avatar-btn');
+  if (user) {
+    loginBtn.style.display = 'none';
+    avatarBtn.style.display = 'flex';
+    avatarBtn.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
+    await loadCloudData();
+  } else {
+    loginBtn.style.display = 'flex';
+    avatarBtn.style.display = 'none';
+    userNotes = {};
+  }
+  renderNotes();
+});
+
+async function loadCloudData() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).collection('data').doc('main').get();
+    if (snap.exists) {
+      const d = snap.data();
+      if (Array.isArray(d.readDays)) d.readDays.forEach(k => readDays.add(k));
+      userNotes = d.notes || {};
+      saveReadDays();   // merge back to localStorage
+    }
+    await saveCloudData();  // upload any local-only data
+  } catch(e) { console.error('Cloud load error:', e.message); }
+}
+
+async function saveCloudData() {
+  if (!currentUser) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('data').doc('main').set({
+      readDays: [...readDays],
+      notes: userNotes,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.error('Cloud save error:', e.message); }
+}
+
+// ─── Notes ────────────────────────────────────────────────────────
+function renderNotes() {
+  const section = document.getElementById('notes-section');
+  const available = typeof isAvailable === 'function' && isAvailable(currentSection, currentIndex);
+  if (!currentUser || !available) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  const k = dayKey(currentSection, currentIndex);
+  document.getElementById('notes-input').value = userNotes[k] || '';
+  document.getElementById('notes-status').textContent = '';
+}
+
+function onNotesInput() {
+  const k = dayKey(currentSection, currentIndex);
+  userNotes[k] = document.getElementById('notes-input').value;
+  document.getElementById('notes-status').textContent = '儲存中…';
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async () => {
+    await saveCloudData();
+    document.getElementById('notes-status').textContent = '已儲存 ✓';
+    setTimeout(() => { document.getElementById('notes-status').textContent = ''; }, 2000);
+  }, 1000);
+}
+
+// ─────────────────────────────────────────────────────────────────
 const PLAN_META = {
   june: { title:"靈魂的室內設計師", subtitle:"以西結書 42–48 章" },
   july: { title:"31天與保羅一起解鎖生命新視角", subtitle:"羅馬書 · 加拉太書 · 歌羅西書 · 腓立比書 · 腓利門書" },
@@ -1324,7 +1439,13 @@ function loadReadDays() {
   try { const s = localStorage.getItem('bible-read'); return s ? new Set(JSON.parse(s)) : new Set(); }
   catch { return new Set(); }
 }
-function saveReadDays() { localStorage.setItem('bible-read', JSON.stringify([...readDays])); }
+function saveReadDays() {
+  localStorage.setItem('bible-read', JSON.stringify([...readDays]));
+  if (currentUser) {
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = setTimeout(saveCloudData, 2000);
+  }
+}
 function dayKey(sec, idx) { return sec + '-' + idx; }
 const readDays = loadReadDays();
 
@@ -1462,6 +1583,7 @@ function render() {
 
   // "回今天" button
   document.getElementById('btn-today').classList.toggle('hidden', todayInfo.index === -2 || isTodaySelected());
+  renderNotes();
 
   // June grid
   const juneGrid = document.getElementById('june-grid');
