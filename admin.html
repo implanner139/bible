@@ -157,13 +157,10 @@
 
         <!-- Meta rows -->
         <div class="mb-3">
-          <p class="text-xs font-bold text-white mb-1.5">▸ 最前面幾行：計畫基本資料（選填）</p>
+          <p class="text-xs font-bold text-white mb-1.5">▸ 第一行：計畫標題（選填）</p>
           <div class="grid grid-cols-1 gap-1 text-xs text-gray-400 pl-3">
-            <div><span class="text-white font-mono">PLAN_TITLE_JUNE</span> — 六月系列名稱，如：靈魂的室內設計師</div>
-            <div><span class="text-white font-mono">PLAN_SUBTITLE_JUNE</span> — 六月副標，如：以西結書 42–48 章</div>
-            <div><span class="text-white font-mono">PLAN_TITLE_JULY</span> — 七月系列名稱</div>
-            <div><span class="text-white font-mono">PLAN_SUBTITLE_JULY</span> — 七月副標</div>
-            <div><span class="text-white font-mono">PLAN_INTRO</span> — 計畫簡介（長段落，用引號包住）</div>
+            <div>直接寫計畫名稱即可，系統會自動對應到該月份。不填也沒關係，保留原本的標題。</div>
+            <div class="text-gray-600">範例：在時局震盪中，解鎖榮耀的未來：66 天的生命校準之旅</div>
           </div>
         </div>
 
@@ -459,6 +456,7 @@ function handleCSV(text, filename) {
   // Find header row + collect meta rows
   let headerIdx = -1;
   const metaRows = [];
+  let plainTitle = '';   // auto-detected from first plain-text row
   for (let i = 0; i < rawLines.length; i++) {
     const line = rawLines[i].trim();
     if (!line) continue;
@@ -469,6 +467,9 @@ function handleCSV(text, filename) {
     } else if (key === 'SECTION' || (cells[0]||'').trim().startsWith('日期')) {
       headerIdx = i;
       break;
+    } else if (!plainTitle && cells.length <= 2 && (cells[0]||'').trim().length > 4) {
+      // First unrecognised plain-text row → treat as plan title
+      plainTitle = (cells[0]||'').trim();
     }
   }
 
@@ -486,6 +487,15 @@ function handleCSV(text, filename) {
       planMeta.sections[sec].subtitle = value;
     }
   });
+
+  // Auto-apply plain title to any section not already named via PLAN_TITLE_*
+  if (plainTitle) {
+    Object.keys(csvSections).concat(['_pending']).forEach(sec => {
+      if (sec === '_pending') return;
+      if (!planMeta.sections[sec]) planMeta.sections[sec] = { title: plainTitle, subtitle: '' };
+    });
+    // Will also apply after data rows are parsed below
+  }
 
   if (headerIdx < 0) {
     showUploadStatus('找不到資料欄位列（需包含 section 或「日期」欄位），請確認格式正確。', 'err');
@@ -547,6 +557,13 @@ function handleCSV(text, filename) {
     if (!csvSections[r.section]) csvSections[r.section] = [];
     csvSections[r.section].push(r);
   });
+
+  // Apply auto-detected plain title to sections that have no explicit PLAN_TITLE_*
+  if (plainTitle) {
+    Object.keys(csvSections).forEach(sec => {
+      if (!planMeta.sections[sec]) planMeta.sections[sec] = { title: plainTitle, subtitle: '' };
+    });
+  }
 
   const secSummary = Object.entries(csvSections)
     .map(([s, rs]) => `${s}: ${rs.length} 天`).join('，');
@@ -778,51 +795,30 @@ function setStatus(type, html) {
 // ═══════════════════════════════════════════════════════════════════
 
 function downloadTemplate() {
-  // 5-column new format matching user's existing CSV style
-  const row1content = [
+  const sampleContent = [
     '每日重點：[短句，如：看清生命混亂的根源，回到天父懷中重啟人生]',
     '',
-    '真理導航：[在這裡填入真理導航的長段落，可多行，整格用引號包住即可。]',
+    '真理導航：[在這裡填入真理導航的長段落，可多行。]',
     '',
     '生活練習：',
-    '【愛神】[愛神的具體行動，如：找一個安靜的10分鐘，帶著一句經文默想。]',
+    '【愛神】[愛神的具體行動]',
     '【愛人】[愛人的具體行動（可留空）]',
     '',
     '今日禱告：[在這裡填入禱告內容。阿們。]'
   ].join('\n');
 
-  const row1verse = [
-    '「[金句文字]」（以賽亞書 1:18）',
+  const sampleVerse = [
+    '「[金句文字]」（書卷 章:節）',
     '#標籤1 #標籤2 #標籤3'
   ].join('\n');
 
-  const row2content = [
-    '每日重點：福音是神的大能，能徹底翻轉你的人生底牌',
-    '',
-    '真理導航：在這裡填入真理導航的長段落...',
-    '',
-    '生活練習：',
-    '【愛神】今天花5分鐘感謝神這週的恩典。',
-    '【愛人】留意身邊一位需要鼓勵的朋友，傳訊息關心他。',
-    '',
-    '今日禱告：主啊，今天我宣告祢是我生命的主。阿們。'
-  ].join('\n');
-
-  const row2verse = [
-    '「這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）',
-    '#大能 #核心重啟'
-  ].join('\n');
-
   const csvParts = [
-    'PLAN_TITLE_JUNE,靈魂的室內設計師',
-    'PLAN_SUBTITLE_JUNE,以西結書 42–48 章',
-    'PLAN_TITLE_JULY,31天與保羅一起解鎖生命新視角',
-    'PLAN_SUBTITLE_JULY,羅馬書 · 加拉太書 · 歌羅西書 · 腓立比書 · 腓利門書',
-    'PLAN_INTRO,"在這裡填入計畫的完整簡介。可以是多句話的段落，請用引號包住整段文字。"',
+    // 第一行：計畫標題（選填，系統自動偵測為該月份的名稱）
+    '在時局震盪中，解鎖榮耀的未來：66 天的生命校準之旅',
     '',
     '日期 (Day),天數,經文進度,每日重點／真理導航／生活練習,今日金句卡',
-    csvRow(['6/23','第 54 天','以西結書 42 章', row1content, row1verse]),
-    csvRow(['7/1', '第 1 天', '羅馬書 1:1-32',  row2content, row2verse]),
+    csvRow(['8/1', '第 1 天', '以賽亞書 1:1-全', sampleContent, sampleVerse]),
+    csvRow(['8/2', '第 2 天', '以賽亞書 2:1-全', sampleContent, sampleVerse]),
   ];
 
   const csv = '﻿' + csvParts.join('\n');
