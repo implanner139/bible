@@ -412,8 +412,10 @@ function isMetaKey(key) {
 
 // ── helpers for new 5-column format ──────────────────────────────────
 function sectionFromDate(dateStr) {
-  const m = (dateStr||'').match(/^(\d+)\//);
-  return m ? (MONTH_KEYS[parseInt(m[1])] || 'unknown') : 'unknown';
+  const parts = (dateStr||'').trim().split('/');
+  // Handle both m/d (8/1) and yyyy/m/d (2026/8/1) formats
+  const monthNum = parts.length >= 3 ? parseInt(parts[1]) : parseInt(parts[0]);
+  return MONTH_KEYS[monthNum] || 'unknown';
 }
 function parseDayNum(str) {
   const m = (str||'').match(/\d+/);
@@ -611,7 +613,12 @@ function esc4attr(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'
 // ═══════════════════════════════════════════════════════════════════
 
 function escStr(s) {
-  return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
+  return String(s||'')
+    .replace(/\\/g,'\\\\')
+    .replace(/"/g,'\\"')
+    .replace(/\r\n/g,'\\n')
+    .replace(/\r/g,'\\n')
+    .replace(/\n/g,'\\n');
 }
 
 function recordsToJS(records) {
