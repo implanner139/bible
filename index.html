@@ -311,14 +311,35 @@ function handleUserTap() {
   if (confirm(`✅ 已登入\n${name}\n\n點確定登出`)) auth.signOut();
 }
 
-let _authReady = false;
+// Wait for both: redirect result check AND auth state — only show splash when both confirm no user
+let _redirectDone = false;
+let _authUser = undefined; // undefined = not yet known
+
+function _maybeShowSplash() {
+  // Show splash only after we know there's no pending redirect AND no logged-in user
+  if (_redirectDone && _authUser === null) showSplash();
+}
 
 auth.getRedirectResult()
-  .then(result => { /* redirect login handled by onAuthStateChanged */ })
-  .catch(e => console.error('Redirect result error:', e.message));
+  .then(result => {
+    if (result && result.user) console.log('Redirect login OK:', result.user.email);
+  })
+  .catch(e => {
+    const errEl = document.getElementById('splash-error');
+    console.error('Redirect result error:', e.code, e.message);
+    if (errEl && e.code !== 'auth/no-auth-event') {
+      errEl.textContent = `登入失敗：${e.message}`;
+      errEl.style.display = 'block';
+    }
+  })
+  .finally(() => {
+    _redirectDone = true;
+    _maybeShowSplash();
+  });
 
 auth.onAuthStateChanged(async user => {
   currentUser = user;
+  _authUser = user;
   const loginBtn   = document.getElementById('btn-login');
   const avatarWrap = document.getElementById('user-avatar-wrap');
   const avatarBtn  = document.getElementById('user-avatar-btn');
@@ -329,13 +350,11 @@ auth.onAuthStateChanged(async user => {
     avatarBtn.textContent = (user.displayName || user.email || '?')[0].toUpperCase();
     await loadCloudData();
   } else {
-    // Only show splash on the very first auth check (not on mid-session sign-out)
-    if (!_authReady) showSplash();
     loginBtn.style.display = 'flex';
     avatarWrap.style.display = 'none';
     userNotes = {};
+    _maybeShowSplash();
   }
-  _authReady = true;
   renderNotes();
 });
 
