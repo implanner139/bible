@@ -67,7 +67,7 @@
     <div class="flex items-center gap-3">
       <div class="text-right">
         <div class="text-xl font-black text-white"><span id="hdr-done">0</span><span class="text-sm font-normal" style="color:rgba(232,232,240,.4)"> /38</span></div>
-        <div class="text-[10px] gold-text opacity-70">以西結 · 保羅書信</div>
+        <div id="hdr-subtitle" class="text-[10px] gold-text opacity-70">以西結 · 保羅書信</div>
       </div>
       <div class="relative w-10 h-10">
         <svg class="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
@@ -197,6 +197,12 @@
 </main>
 
 <script>
+const PLAN_META = {
+  june: { title:"靈魂的室內設計師", subtitle:"以西結書 42–48 章" },
+  july: { title:"31天與保羅一起解鎖生命新視角", subtitle:"羅馬書 · 加拉太書 · 歌羅西書 · 腓立比書 · 腓利門書" },
+  intro: ""
+};
+
 const JUNE_READINGS = [
   { date:"6/23", day:54, book:"以西結書", passage:"以西結書 42 章",
     focus:"分別為聖，生命中需要保留神聖的空間",
@@ -1388,8 +1394,9 @@ function render() {
   card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
 
   // Header series title
-  document.getElementById('hdr-title').textContent = currentSection === 'june'
-    ? '靈魂的室內設計師' : '31天與保羅一起解鎖生命新視角';
+  const meta = PLAN_META[currentSection];
+  document.getElementById('hdr-title').textContent = meta ? meta.title : '';
+  document.getElementById('hdr-subtitle').textContent = meta ? meta.subtitle : '';
 
   // Book tag & badges
   document.getElementById('book-tag').textContent = r.book;

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>讀經計畫管理後台 | iM行動教會</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root { --gold: #f5c518; --gold-lt: #ffd740; }
     * { box-sizing: border-box; }
@@ -15,271 +17,388 @@
       font-weight: 600;
       line-height: 1.7;
     }
-    .card {
-      background: #111;
-      border-radius: 16px;
-      border: 1px solid #222;
-    }
+    .card { background: #111; border-radius: 16px; border: 1px solid #222; }
     .gold-text { color: var(--gold); }
     .step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px; height: 26px;
-      border-radius: 50%;
-      background: var(--gold);
-      color: #000;
-      font-weight: 900;
-      font-size: 13px;
-      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--gold); color: #000; font-weight: 900; font-size: 13px; flex-shrink: 0;
     }
     .drop-zone {
-      border: 2px dashed #333;
-      border-radius: 14px;
-      transition: border-color .2s, background .2s;
-      cursor: pointer;
+      border: 2px dashed #333; border-radius: 14px;
+      transition: border-color .2s, background .2s; cursor: pointer;
     }
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--gold);
-      background: rgba(245,197,24,.04);
+      border-color: var(--gold); background: rgba(245,197,24,.04);
     }
     .btn-gold {
-      background: var(--gold);
-      color: #000;
-      font-weight: 800;
-      border-radius: 12px;
-      padding: 12px 22px;
-      border: none;
-      cursor: pointer;
-      transition: background .15s, transform .1s;
-      white-space: nowrap;
+      background: var(--gold); color: #000; font-weight: 800;
+      border-radius: 12px; padding: 12px 22px; border: none; cursor: pointer;
+      transition: background .15s, transform .1s; white-space: nowrap;
     }
     .btn-gold:hover { background: var(--gold-lt); }
     .btn-gold:active { transform: scale(.97); }
+    .btn-gold:disabled { opacity: .4; cursor: not-allowed; }
     .btn-ghost {
-      background: transparent;
-      color: #fff;
-      font-weight: 700;
-      border-radius: 12px;
-      padding: 12px 22px;
-      border: 1px solid #333;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      white-space: nowrap;
+      background: transparent; color: #fff; font-weight: 700;
+      border-radius: 12px; padding: 12px 22px; border: 1px solid #333; cursor: pointer;
+      transition: border-color .15s, background .15s; white-space: nowrap;
     }
     .btn-ghost:hover { border-color: #555; background: #1a1a1a; }
     .btn-ghost:active { transform: scale(.97); }
-    .tag {
-      display: inline-block;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: .68rem;
-      font-weight: 700;
-      letter-spacing: .04em;
-    }
+    .tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: .68rem; font-weight: 700; letter-spacing: .04em; }
     .tag-june { background: rgba(245,197,24,.15); color: var(--gold); }
     .tag-july { background: rgba(100,180,255,.15); color: #64b4ff; }
-    .tag-error { background: rgba(255,80,80,.15); color: #ff5050; }
     table { width: 100%; border-collapse: collapse; }
     thead th {
-      background: #181818;
-      color: var(--gold);
-      font-size: .65rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 9px 14px;
-      text-align: left;
-      white-space: nowrap;
+      background: #181818; color: var(--gold);
+      font-size: .65rem; letter-spacing: .08em; text-transform: uppercase;
+      padding: 9px 14px; text-align: left; white-space: nowrap;
     }
     tbody td {
-      padding: 8px 14px;
-      border-bottom: 1px solid #1a1a1a;
-      font-size: .78rem;
-      color: rgba(255,255,255,.75);
-      max-width: 240px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      padding: 8px 14px; border-bottom: 1px solid #1a1a1a;
+      font-size: .78rem; color: rgba(255,255,255,.75);
+      max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     tbody tr:hover td { background: #151515; }
     .input-field {
-      width: 100%;
-      background: #0a0a0a;
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: #fff;
-      font-size: .85rem;
-      font-family: 'SF Mono', 'Consolas', monospace;
-      outline: none;
-      transition: border-color .2s;
+      width: 100%; background: #0a0a0a; border: 1px solid #2a2a2a;
+      border-radius: 10px; padding: 10px 14px; color: #fff; font-size: .85rem;
+      font-family: 'SF Mono', 'Consolas', monospace; outline: none; transition: border-color .2s;
     }
     .input-field:focus { border-color: var(--gold); }
-    .status-box {
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: .85rem;
-      font-weight: 700;
-    }
-    .status-ok { background: rgba(60,210,100,.1); color: #3cd264; border: 1px solid rgba(60,210,100,.2); }
-    .status-err { background: rgba(255,80,80,.1); color: #ff5050; border: 1px solid rgba(255,80,80,.2); }
-    .status-info { background: rgba(245,197,24,.08); color: var(--gold); border: 1px solid rgba(245,197,24,.2); }
+    .status-box { border-radius: 10px; padding: 12px 16px; font-size: .85rem; font-weight: 700; }
+    .status-ok  { background: rgba(60,210,100,.1);  color: #3cd264; border: 1px solid rgba(60,210,100,.2); }
+    .status-err { background: rgba(255,80,80,.1);   color: #ff5050; border: 1px solid rgba(255,80,80,.2); }
+    .status-info{ background: rgba(245,197,24,.08); color: var(--gold); border: 1px solid rgba(245,197,24,.2); }
     .spin { animation: spin 1s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Login gate */
+    #login-gate {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #login-card {
+      background: #111; border: 1px solid #222; border-radius: 20px;
+      padding: 40px 32px; max-width: 400px; width: 100%; text-align: center;
+    }
+    #login-error {
+      background: rgba(255,80,80,.1); color: #ff5050; border: 1px solid rgba(255,80,80,.2);
+      border-radius: 10px; padding: 10px 14px; font-size: .82rem; margin-top: 16px; display: none;
+    }
+    #setup-note {
+      background: rgba(245,197,24,.06); border: 1px solid rgba(245,197,24,.15);
+      border-radius: 10px; padding: 12px 14px; font-size: .78rem; color: #aaa;
+      margin-top: 16px; text-align: left; display: none;
+    }
+
+    /* Main content */
+    #admin-main { display: none; }
   </style>
 </head>
-<body class="min-h-screen pb-16">
+<body class="min-h-screen">
 
-<!-- Sticky header -->
-<header style="background:rgba(0,0,0,.96);border-bottom:1px solid #1a1a1a;backdrop-filter:blur(12px)" class="sticky top-0 z-30 px-5 py-3">
-  <div class="max-w-3xl mx-auto flex items-center justify-between">
-    <div>
-      <div class="text-xs font-bold tracking-widest gold-text" style="opacity:.6;text-transform:uppercase">iM行動教會</div>
-      <h1 class="text-base font-black text-white">讀經計畫 · 管理後台</h1>
+<!-- ═══════════════════════ LOGIN GATE ═══════════════════════ -->
+<div id="login-gate">
+  <div id="login-card">
+    <div class="text-xs font-bold tracking-widest gold-text mb-2" style="opacity:.6;text-transform:uppercase">iM行動教會</div>
+    <h1 class="text-2xl font-black text-white mb-1">讀經計畫</h1>
+    <p class="text-sm text-gray-400 mb-6">管理後台</p>
+
+    <!-- Google One Tap / Sign-in Button (injected by GSI) -->
+    <div id="g_id_onload"
+         data-client_id="GOOGLE_CLIENT_ID_PLACEHOLDER"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
     </div>
-    <a href="index.html" class="text-xs text-gray-500 hover:text-white transition-colors">← 回前台</a>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="pill"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-locale="zh-TW"
+         data-width="280">
+    </div>
+
+    <div id="login-error"></div>
+    <div id="setup-note">
+      ⚠️ Google 登入尚未設定完成。請參考頁面底部的設定說明，填入 Google Client ID 後再重新部署。
+    </div>
+
+    <p class="text-xs text-gray-600 mt-6">只有授權的 Google 帳號才能登入</p>
   </div>
-</header>
+</div>
 
-<main class="max-w-3xl mx-auto px-4 py-6 space-y-5">
+<!-- ═══════════════════════ ADMIN MAIN ═══════════════════════ -->
+<div id="admin-main">
 
-  <!-- STEP 1 · 下載 CSV 範本 -->
-  <div class="card px-6 py-5">
-    <div class="flex items-center gap-3 mb-4">
-      <span class="step-num">1</span>
-      <h2 class="text-base font-black text-white">下載 CSV 範本</h2>
-    </div>
-    <p class="text-sm text-gray-400 mb-4">先下載範本，用 Excel / Google Sheets 填入每天的讀經內容，完成後另存為 UTF-8 編碼的 CSV 再上傳。</p>
-    <div class="flex flex-wrap gap-3">
-      <button onclick="downloadTemplate()" class="btn-ghost text-sm">⬇ 下載空白範本 CSV</button>
-      <button onclick="downloadCurrentAsCSV()" id="btn-dl-current" class="btn-ghost text-sm" style="display:none">📤 匯出現有資料為 CSV</button>
-    </div>
-    <div class="mt-4 p-4 rounded-xl" style="background:#0d0d0d;border:1px solid #222">
-      <p class="text-xs gold-text font-bold tracking-widest uppercase mb-3" style="opacity:.5">CSV 欄位說明</p>
-      <div class="grid grid-cols-1 gap-1.5 text-xs text-gray-400">
-        <div><span class="text-white font-bold">section</span> — <span class="tag tag-june">june</span> 或 <span class="tag tag-july">july</span>（決定放在哪個月份）</div>
-        <div><span class="text-white font-bold">date</span> — 日期，格式：6/23 或 7/1</div>
-        <div><span class="text-white font-bold">day</span> — 第幾天（數字）</div>
-        <div><span class="text-white font-bold">book</span> — 書卷名稱，如：羅馬書</div>
-        <div><span class="text-white font-bold">passage</span> — 經文範圍，如：羅馬書 1:1-32</div>
-        <div><span class="text-white font-bold">focus</span> — 每日重點（短句）</div>
-        <div><span class="text-white font-bold">navigation</span> — 真理導航（長段落，請用引號包住）</div>
-        <div><span class="text-white font-bold">practiceGod</span> — 生活練習：愛神</div>
-        <div><span class="text-white font-bold">practicePeople</span> — 生活練習：愛人（可空白）</div>
-        <div><span class="text-white font-bold">prayer</span> — 今日禱告</div>
-        <div><span class="text-white font-bold">verse</span> — 今日金句</div>
-        <div><span class="text-white font-bold">tags</span> — 標籤，如：#信心 #盼望</div>
+  <!-- Sticky header -->
+  <header style="background:rgba(0,0,0,.96);border-bottom:1px solid #1a1a1a;backdrop-filter:blur(12px)" class="sticky top-0 z-30 px-5 py-3">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+      <div>
+        <div class="text-xs font-bold tracking-widest gold-text" style="opacity:.6;text-transform:uppercase">iM行動教會</div>
+        <h1 class="text-base font-black text-white">讀經計畫 · 管理後台</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="user-email" class="text-xs text-gray-500"></span>
+        <button onclick="signOut()" class="btn-ghost text-xs px-3 py-2">登出</button>
+        <a href="index.html" class="text-xs text-gray-500 hover:text-white transition-colors">← 前台</a>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- STEP 2 · 上傳 CSV -->
-  <div class="card px-6 py-5">
-    <div class="flex items-center gap-3 mb-4">
-      <span class="step-num">2</span>
-      <h2 class="text-base font-black text-white">上傳 CSV 檔案</h2>
-    </div>
-    <div id="drop-zone" class="drop-zone p-10 text-center" onclick="document.getElementById('csv-input').click()">
-      <div style="font-size:3rem;margin-bottom:10px">📂</div>
-      <p class="font-bold text-white">點擊或拖曳 CSV 檔案到這裡</p>
-      <p class="text-xs text-gray-500 mt-1">請使用 UTF-8（帶 BOM）編碼儲存</p>
-    </div>
-    <input id="csv-input" type="file" accept=".csv,.txt" style="display:none" onchange="handleFileInput(event)">
-    <div id="upload-status" class="hidden mt-3"></div>
-  </div>
+  <main class="max-w-3xl mx-auto px-4 py-6 space-y-5">
 
-  <!-- STEP 3 · 資料預覽 -->
-  <div id="preview-section" class="card px-6 py-5 hidden">
-    <div class="flex items-center gap-3 mb-2">
-      <span class="step-num">3</span>
-      <h2 class="text-base font-black text-white">資料預覽</h2>
-    </div>
-    <div id="preview-stats" class="text-sm text-gray-400 mb-4"></div>
-    <div id="preview-errors" class="mb-3 hidden"></div>
-    <div style="overflow-x:auto;border-radius:10px;border:1px solid #1a1a1a">
-      <table>
-        <thead>
-          <tr>
-            <th>月份</th>
-            <th>日期</th>
-            <th>第幾天</th>
-            <th>書卷</th>
-            <th>經文範圍</th>
-            <th>重點</th>
-            <th>真理導航</th>
-            <th>禱告</th>
-            <th>金句</th>
-          </tr>
-        </thead>
-        <tbody id="preview-tbody"></tbody>
-      </table>
-    </div>
-  </div>
+    <!-- STEP 1 · 下載 CSV 範本 -->
+    <div class="card px-6 py-5">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num">1</span>
+        <h2 class="text-base font-black text-white">下載 CSV 範本</h2>
+      </div>
+      <p class="text-sm text-gray-400 mb-4">下載範本 → 用 Excel / Google Sheets 填入 → 另存為 UTF-8（帶 BOM）的 CSV → 上傳。</p>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="downloadTemplate()" class="btn-ghost text-sm">⬇ 下載空白範本 CSV</button>
+      </div>
 
-  <!-- STEP 4 · 發布 -->
-  <div id="publish-section" class="card px-6 py-5 hidden">
-    <div class="flex items-center gap-3 mb-4">
-      <span class="step-num">4</span>
-      <h2 class="text-base font-black text-white">發布更新</h2>
-    </div>
+      <!-- Column description -->
+      <div class="mt-4 p-4 rounded-xl" style="background:#0d0d0d;border:1px solid #222">
+        <p class="text-xs gold-text font-bold tracking-widest uppercase mb-3" style="opacity:.5">CSV 格式說明</p>
 
-    <!-- GitHub settings -->
-    <div class="mb-5 p-4 rounded-xl" style="background:#0a0a0a;border:1px solid #222">
-      <p class="text-xs gold-text font-bold tracking-widest uppercase mb-3" style="opacity:.5">GitHub 設定（一次設定，永久記憶）</p>
-      <div class="space-y-3">
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">Repository（擁有者/倉庫名稱）</label>
-          <input id="gh-repo" type="text" placeholder="implanner139/bible" class="input-field">
+        <!-- Meta rows -->
+        <div class="mb-3">
+          <p class="text-xs font-bold text-white mb-1.5">▸ 最前面幾行：計畫基本資料（選填）</p>
+          <div class="grid grid-cols-1 gap-1 text-xs text-gray-400 pl-3">
+            <div><span class="text-white font-mono">PLAN_TITLE_JUNE</span> — 六月系列名稱，如：靈魂的室內設計師</div>
+            <div><span class="text-white font-mono">PLAN_SUBTITLE_JUNE</span> — 六月副標，如：以西結書 42–48 章</div>
+            <div><span class="text-white font-mono">PLAN_TITLE_JULY</span> — 七月系列名稱</div>
+            <div><span class="text-white font-mono">PLAN_SUBTITLE_JULY</span> — 七月副標</div>
+            <div><span class="text-white font-mono">PLAN_INTRO</span> — 計畫簡介（長段落，用引號包住）</div>
+          </div>
         </div>
+
+        <!-- Data rows -->
         <div>
-          <label class="block text-xs text-gray-500 mb-1">Branch</label>
-          <input id="gh-branch" type="text" placeholder="main" class="input-field">
-        </div>
-        <div>
-          <label class="block text-xs text-gray-500 mb-1">GitHub Personal Access Token
-            <a href="https://github.com/settings/tokens/new?scopes=repo&description=bible-admin" target="_blank" class="ml-1 text-yellow-400 underline">→ 點此建立 Token</a>
-          </label>
-          <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="input-field" autocomplete="off">
-          <p class="text-xs text-gray-600 mt-1">Token 僅存在你的瀏覽器 localStorage，不會傳送到任何第三方。需要 <code style="color:#aaa">repo</code> 權限。</p>
+          <p class="text-xs font-bold text-white mb-1.5">▸ 後面幾行：每日讀經資料</p>
+          <div class="grid grid-cols-1 gap-1 text-xs text-gray-400 pl-3">
+            <div><span class="text-white font-bold">section</span> — <span class="tag tag-june">june</span> 或 <span class="tag tag-july">july</span></div>
+            <div><span class="text-white font-bold">date</span> — 6/23 或 7/1</div>
+            <div><span class="text-white font-bold">day</span> — 第幾天（數字）</div>
+            <div><span class="text-white font-bold">book</span> — 書卷，如：羅馬書</div>
+            <div><span class="text-white font-bold">passage</span> — 經文範圍，如：羅馬書 1:1-32</div>
+            <div><span class="text-white font-bold">focus</span> — 每日重點（短句）</div>
+            <div><span class="text-white font-bold">navigation</span> — 真理導航（長段落，用引號包住）</div>
+            <div><span class="text-white font-bold">practiceGod</span> — 生活練習：愛神</div>
+            <div><span class="text-white font-bold">practicePeople</span> — 生活練習：愛人（可空白）</div>
+            <div><span class="text-white font-bold">prayer</span> — 今日禱告</div>
+            <div><span class="text-white font-bold">verse</span> — 今日金句</div>
+            <div><span class="text-white font-bold">tags</span> — 標籤，如：#信心 #盼望</div>
+          </div>
         </div>
       </div>
-      <button onclick="saveGhSettings()" class="btn-ghost text-xs mt-3">💾 儲存設定</button>
-      <span id="settings-saved" class="text-xs text-green-400 ml-3 hidden">已儲存 ✓</span>
     </div>
 
-    <!-- Action buttons -->
-    <div class="flex flex-wrap gap-3 mb-4">
-      <button onclick="downloadJS()" class="btn-ghost flex-1 min-w-[140px]">⬇ 下載 JS 片段</button>
-      <button onclick="pushToGitHub()" id="btn-push" class="btn-gold flex-1 min-w-[180px]">🚀 直接推送到 GitHub</button>
+    <!-- STEP 2 · 上傳 CSV -->
+    <div class="card px-6 py-5">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num">2</span>
+        <h2 class="text-base font-black text-white">上傳 CSV 檔案</h2>
+      </div>
+      <div id="drop-zone" class="drop-zone p-10 text-center" onclick="document.getElementById('csv-input').click()">
+        <div style="font-size:3rem;margin-bottom:10px">📂</div>
+        <p class="font-bold text-white">點擊或拖曳 CSV 檔案到這裡</p>
+        <p class="text-xs text-gray-500 mt-1">請使用 UTF-8（帶 BOM）編碼儲存</p>
+      </div>
+      <input id="csv-input" type="file" accept=".csv,.txt" style="display:none" onchange="handleFileInput(event)">
+      <div id="upload-status" class="hidden mt-3"></div>
     </div>
-    <div id="push-status" class="hidden"></div>
 
-    <!-- Help text -->
-    <div class="mt-4 p-4 rounded-xl text-xs text-gray-500" style="background:#080808;border:1px solid #1a1a1a;line-height:1.8">
-      <p class="text-gray-400 font-bold mb-2">沒有 Token 的話怎麼辦？</p>
-      <p>1. 點「下載 JS 片段」，取得一個 <code style="color:#aaa">.txt</code> 檔</p>
-      <p>2. 用文字編輯器（記事本）開啟 <code style="color:#aaa">index.html</code></p>
-      <p>3. 找到 <code style="color:#aaa">const JUNE_READINGS = [</code> 到 <code style="color:#aaa">const SCRIPTURE = {</code> 之間的內容</p>
-      <p>4. 用下載的 JS 片段取代，存檔後推送到 GitHub</p>
+    <!-- STEP 3 · 計畫資料預覽 -->
+    <div id="meta-section" class="card px-6 py-5 hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="step-num" style="background:#333;color:#fff">✦</span>
+        <h2 class="text-base font-black text-white">計畫基本資料預覽</h2>
+      </div>
+      <div id="meta-preview" class="grid grid-cols-1 gap-2 text-sm"></div>
     </div>
-  </div>
 
-</main>
+    <!-- STEP 3 · 每日資料預覽 -->
+    <div id="preview-section" class="card px-6 py-5 hidden">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="step-num">3</span>
+        <h2 class="text-base font-black text-white">每日讀經資料預覽</h2>
+      </div>
+      <div id="preview-stats" class="text-sm text-gray-400 mb-4"></div>
+      <div style="overflow-x:auto;border-radius:10px;border:1px solid #1a1a1a">
+        <table>
+          <thead>
+            <tr>
+              <th>月份</th><th>日期</th><th>第幾天</th><th>書卷</th>
+              <th>經文範圍</th><th>重點</th><th>真理導航</th><th>禱告</th><th>金句</th>
+            </tr>
+          </thead>
+          <tbody id="preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 4 · 發布 -->
+    <div id="publish-section" class="card px-6 py-5 hidden">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="step-num">4</span>
+        <h2 class="text-base font-black text-white">發布更新</h2>
+      </div>
+
+      <!-- GitHub settings -->
+      <div class="mb-5 p-4 rounded-xl" style="background:#0a0a0a;border:1px solid #222">
+        <p class="text-xs gold-text font-bold tracking-widest uppercase mb-3" style="opacity:.5">GitHub 設定</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Repository（擁有者/倉庫）</label>
+            <input id="gh-repo" type="text" placeholder="implanner139/bible" class="input-field">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Branch</label>
+            <input id="gh-branch" type="text" placeholder="main" class="input-field">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">
+              GitHub Personal Access Token
+              <a href="https://github.com/settings/tokens/new?scopes=repo&description=bible-admin" target="_blank" class="ml-1 text-yellow-400 underline">→ 點此建立</a>
+            </label>
+            <input id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="input-field" autocomplete="off">
+            <p class="text-xs text-gray-600 mt-1">Token 僅存在你的瀏覽器 localStorage，需要 <code style="color:#aaa">repo</code> 權限。</p>
+          </div>
+        </div>
+        <button onclick="saveGhSettings()" class="btn-ghost text-xs mt-3">💾 儲存設定</button>
+        <span id="settings-saved" class="text-xs text-green-400 ml-3 hidden">已儲存 ✓</span>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex flex-wrap gap-3 mb-4">
+        <button onclick="downloadJS()" class="btn-ghost flex-1 min-w-[140px]">⬇ 下載 JS 片段</button>
+        <button onclick="pushToGitHub()" id="btn-push" class="btn-gold flex-1 min-w-[180px]">🚀 直接推送到 GitHub</button>
+      </div>
+      <div id="push-status" class="hidden"></div>
+
+      <div class="mt-4 p-4 rounded-xl text-xs text-gray-500" style="background:#080808;border:1px solid #1a1a1a;line-height:1.8">
+        <p class="text-gray-400 font-bold mb-1">沒有 Token 的話</p>
+        <p>1. 點「下載 JS 片段」，取得更新後的 JS 代碼</p>
+        <p>2. 用文字編輯器開啟 <code style="color:#aaa">index.html</code>，找到 <code style="color:#aaa">const PLAN_META</code> 到 <code style="color:#aaa">const SCRIPTURE</code> 之間的內容，替換掉</p>
+      </div>
+    </div>
+
+    <!-- Google 登入設定說明（折疊） -->
+    <details class="card px-6 py-5">
+      <summary class="cursor-pointer text-sm font-bold text-gray-400 hover:text-white">
+        ⚙ Google 登入設定說明（第一次部署需要做）
+      </summary>
+      <div class="mt-4 space-y-3 text-sm text-gray-400" style="line-height:1.9">
+        <p class="text-white font-bold">需要做一次的設定（約 15 分鐘）：</p>
+        <ol class="list-decimal pl-5 space-y-2">
+          <li>前往 <a href="https://console.cloud.google.com/" target="_blank" class="text-yellow-400 underline">Google Cloud Console</a></li>
+          <li>建立新專案（或選現有的），名稱自訂，例如「bible-admin」</li>
+          <li>左側選單 → API 和服務 → 憑證</li>
+          <li>點「建立憑證」→「OAuth 2.0 用戶端 ID」→ 類型選「網頁應用程式」</li>
+          <li>「已授權的 JavaScript 來源」加入：<br>
+            <code style="color:#f5c518">https://implanner139.github.io</code>
+          </li>
+          <li>建立後，複製「用戶端 ID」（格式：數字-英文.apps.googleusercontent.com）</li>
+          <li>用文字編輯器打開 <code style="color:#aaa">admin.html</code>，搜尋 <code style="color:#f5c518">GOOGLE_CLIENT_ID_PLACEHOLDER</code>，換成你的 Client ID</li>
+          <li>修改下方的 <code style="color:#f5c518">ALLOWED_EMAILS</code>，加入可以登入的 Gmail 帳號</li>
+          <li>存檔後推送到 GitHub，完成！</li>
+        </ol>
+        <p class="text-xs text-gray-600 mt-2">目前 ALLOWED_EMAILS 在 admin.html 的 &lt;script&gt; 最上方，直接編輯那個陣列即可。</p>
+      </div>
+    </details>
+
+  </main>
+</div><!-- end admin-main -->
 
 <script>
-// ─── State ──────────────────────────────────────────────────────────────────
-let parsedRecords = [];
-let juneRecords = [];
-let julyRecords = [];
+// ═══════════════════════════════════════════════════════════════════
+//  ⚙ 設定區（可以直接在這裡修改）
+// ═══════════════════════════════════════════════════════════════════
 
-// ─── Init: load saved settings ──────────────────────────────────────────────
+// 允許登入的 Gmail 帳號（在這裡新增同事的 Gmail）
+const ALLOWED_EMAILS = [
+  'hsuan.te.anne@gmail.com',
+  // 'colleague@gmail.com',   // ← 把同事的 Gmail 加在這裡
+];
+
+// ═══════════════════════════════════════════════════════════════════
+//  Google 登入
+// ═══════════════════════════════════════════════════════════════════
+
+let currentUserEmail = sessionStorage.getItem('admin-user') || '';
+
+function handleCredentialResponse(response) {
+  try {
+    const payload = parseJwt(response.credential);
+    const email = payload.email;
+    if (ALLOWED_EMAILS.includes(email)) {
+      currentUserEmail = email;
+      sessionStorage.setItem('admin-user', email);
+      showAdmin(email);
+    } else {
+      showLoginError(`${email} 沒有管理後台的存取權限，請聯絡管理員。`);
+    }
+  } catch(e) {
+    showLoginError('驗證失敗，請重試。');
+  }
+}
+
+function parseJwt(token) {
+  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(decodeURIComponent(
+    atob(base64).split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')
+  ));
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showAdmin(email) {
+  document.getElementById('login-gate').style.display = 'none';
+  document.getElementById('admin-main').style.display = 'block';
+  document.getElementById('user-email').textContent = email;
+}
+
+function signOut() {
+  sessionStorage.removeItem('admin-user');
+  location.reload();
+}
+
+// Auto-login if session exists
+window.addEventListener('load', () => {
+  const saved = sessionStorage.getItem('admin-user');
+  if (saved && ALLOWED_EMAILS.includes(saved)) {
+    showAdmin(saved);
+    return;
+  }
+  // Check if Client ID is still placeholder
+  const onloadEl = document.getElementById('g_id_onload');
+  if (onloadEl && onloadEl.dataset.clientId === 'GOOGLE_CLIENT_ID_PLACEHOLDER') {
+    document.getElementById('setup-note').style.display = 'block';
+    // Allow bypass in development (remove in production)
+    if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      showAdmin('dev-mode@local');
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  GitHub settings
+// ═══════════════════════════════════════════════════════════════════
+
 (function() {
-  const repo   = localStorage.getItem('gh-repo')   || 'implanner139/bible';
-  const branch = localStorage.getItem('gh-branch') || 'main';
-  const token  = localStorage.getItem('gh-token')  || '';
-  document.getElementById('gh-repo').value   = repo;
-  document.getElementById('gh-branch').value = branch;
-  document.getElementById('gh-token').value  = token;
+  document.getElementById('gh-repo').value   = localStorage.getItem('gh-repo')   || 'implanner139/bible';
+  document.getElementById('gh-branch').value = localStorage.getItem('gh-branch') || 'main';
+  document.getElementById('gh-token').value  = localStorage.getItem('gh-token')  || '';
 })();
 
 function saveGhSettings() {
@@ -291,21 +410,33 @@ function saveGhSettings() {
   setTimeout(() => el.classList.add('hidden'), 2000);
 }
 
-// ─── Drag & drop ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════════════════════
+
+let parsedRecords = [];
+let juneRecords   = [];
+let julyRecords   = [];
+let planMeta      = {
+  juneTitle:    '', juneSubtitle:    '',
+  julyTitle:    '', julySubtitle:    '',
+  intro:        ''
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  Drag & drop
+// ═══════════════════════════════════════════════════════════════════
+
 const dz = document.getElementById('drop-zone');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
 dz.addEventListener('drop', e => {
-  e.preventDefault();
-  dz.classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) readFile(file);
+  e.preventDefault(); dz.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) readFile(f);
 });
 
-function handleFileInput(e) {
-  const file = e.target.files[0];
-  if (file) readFile(file);
-}
+function handleFileInput(e) { const f = e.target.files[0]; if (f) readFile(f); }
 
 function readFile(file) {
   const reader = new FileReader();
@@ -313,7 +444,10 @@ function readFile(file) {
   reader.readAsText(file, 'UTF-8');
 }
 
-// ─── CSV Parser ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  CSV Parser
+// ═══════════════════════════════════════════════════════════════════
+
 function parseCSVLine(line) {
   const result = [];
   let cur = '', inQ = false;
@@ -322,57 +456,83 @@ function parseCSVLine(line) {
     if (c === '"') {
       if (inQ && line[i+1] === '"') { cur += '"'; i++; }
       else inQ = !inQ;
-    } else if (c === ',' && !inQ) {
-      result.push(cur); cur = '';
-    } else {
-      cur += c;
-    }
+    } else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
   }
   result.push(cur);
   return result;
 }
 
-function parseCSV(text) {
-  // Strip UTF-8 BOM
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  // Normalize line endings
-  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-  const nonEmpty = lines.filter(l => l.trim() !== '');
-  if (nonEmpty.length < 2) return { headers: [], rows: [] };
-  const headers = parseCSVLine(nonEmpty[0]).map(h => h.trim());
-  const rows = nonEmpty.slice(1).map(line => {
-    const vals = parseCSVLine(line);
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (vals[i] || '').trim(); });
-    return obj;
-  });
-  return { headers, rows };
-}
-
-const REQUIRED_FIELDS = ['section','date','day','book','passage','focus','navigation','practiceGod','prayer','verse'];
+const META_KEYS = ['PLAN_TITLE_JUNE','PLAN_SUBTITLE_JUNE','PLAN_TITLE_JULY','PLAN_SUBTITLE_JULY','PLAN_INTRO'];
+const REQUIRED  = ['section','date','day','book','passage','focus','navigation','practiceGod','prayer','verse'];
 
 function handleCSV(text, filename) {
-  const { headers, rows } = parseCSV(text);
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l => l.trim());
 
-  // Validate
-  const missing = REQUIRED_FIELDS.filter(f => !headers.includes(f));
-  if (missing.length > 0) {
+  // Reset state
+  planMeta = { juneTitle:'', juneSubtitle:'', julyTitle:'', julySubtitle:'', intro:'' };
+  parsedRecords = []; juneRecords = []; julyRecords = [];
+
+  // Separate meta rows from header/data rows
+  let headerIdx = -1;
+  const metaRows = [];
+  for (let i = 0; i < lines.length; i++) {
+    const cells = parseCSVLine(lines[i]);
+    const key   = (cells[0] || '').trim().toUpperCase();
+    if (META_KEYS.includes(key)) {
+      metaRows.push({ key, value: (cells[1] || '').trim() });
+    } else if (key === 'SECTION') {
+      headerIdx = i;
+      break;
+    }
+  }
+
+  // Parse meta
+  metaRows.forEach(({ key, value }) => {
+    if (key === 'PLAN_TITLE_JUNE')    planMeta.juneTitle    = value;
+    if (key === 'PLAN_SUBTITLE_JUNE') planMeta.juneSubtitle = value;
+    if (key === 'PLAN_TITLE_JULY')    planMeta.julyTitle    = value;
+    if (key === 'PLAN_SUBTITLE_JULY') planMeta.julySubtitle = value;
+    if (key === 'PLAN_INTRO')         planMeta.intro        = value;
+  });
+
+  // Parse data rows
+  if (headerIdx < 0) {
+    showUploadStatus('找不到資料欄位列（應該包含「section」欄位），請確認 CSV 格式正確。', 'err');
+    return;
+  }
+
+  const headers = parseCSVLine(lines[headerIdx]).map(h => h.trim());
+  const missing = REQUIRED.filter(f => !headers.includes(f));
+  if (missing.length) {
     showUploadStatus(`CSV 缺少必要欄位：${missing.join(', ')}`, 'err');
     return;
   }
+
+  const rows = lines.slice(headerIdx + 1).map(line => {
+    const vals = parseCSVLine(line);
+    const obj  = {};
+    headers.forEach((h, i) => { obj[h] = (vals[i] || '').trim(); });
+    return obj;
+  });
 
   parsedRecords = rows.filter(r => r.section === 'june' || r.section === 'july');
   juneRecords   = parsedRecords.filter(r => r.section === 'june');
   julyRecords   = parsedRecords.filter(r => r.section === 'july');
 
-  const total   = parsedRecords.length;
-  const skipped = rows.length - total;
+  const skipped = rows.length - parsedRecords.length;
+  showUploadStatus(
+    `✓ 已解析「${filename}」— ${parsedRecords.length} 筆讀經資料（June: ${juneRecords.length}，July: ${julyRecords.length}）` +
+    (skipped > 0 ? `，略過 ${skipped} 筆無效 section` : ''),
+    'ok'
+  );
 
-  showUploadStatus(`✓ 已解析「${filename}」— ${total} 筆有效資料（June: ${juneRecords.length}，July: ${julyRecords.length}）${skipped > 0 ? `，已略過 ${skipped} 筆無效 section` : ''}`, 'ok');
+  renderMetaPreview();
   renderPreview();
+  document.getElementById('meta-section').classList.remove('hidden');
   document.getElementById('preview-section').classList.remove('hidden');
   document.getElementById('publish-section').classList.remove('hidden');
-  document.getElementById('btn-dl-current').style.display = '';
 }
 
 function showUploadStatus(msg, type) {
@@ -382,43 +542,56 @@ function showUploadStatus(msg, type) {
   el.classList.remove('hidden');
 }
 
-// ─── Preview ──────────────────────────────────────────────────────────────────
-function trunc(s, n) {
-  if (!s) return '—';
-  return s.length > n ? s.slice(0, n) + '…' : s;
+// ═══════════════════════════════════════════════════════════════════
+//  Preview
+// ═══════════════════════════════════════════════════════════════════
+
+function renderMetaPreview() {
+  const el = document.getElementById('meta-preview');
+  const row = (label, val) => val
+    ? `<div class="flex gap-2 text-sm"><span class="text-gray-500 w-36 flex-shrink-0">${label}</span><span class="text-white">${val}</span></div>`
+    : `<div class="flex gap-2 text-sm"><span class="text-gray-500 w-36 flex-shrink-0">${label}</span><span class="text-gray-600 italic">（空白）</span></div>`;
+  el.innerHTML = [
+    row('六月系列名稱', planMeta.juneTitle),
+    row('六月副標',     planMeta.juneSubtitle),
+    row('七月系列名稱', planMeta.julyTitle),
+    row('七月副標',     planMeta.julySubtitle),
+    row('計畫簡介',     planMeta.intro ? planMeta.intro.slice(0, 80) + (planMeta.intro.length > 80 ? '…' : '') : ''),
+  ].join('');
 }
+
+function trunc(s, n) { return !s ? '—' : s.length > n ? s.slice(0, n) + '…' : s; }
 
 function renderPreview() {
   const tbody = document.getElementById('preview-tbody');
   tbody.innerHTML = '';
-
-  parsedRecords.forEach((r, idx) => {
+  parsedRecords.forEach(r => {
     const tr = document.createElement('tr');
-    const sectionTag = r.section === 'june'
+    const tag = r.section === 'june'
       ? '<span class="tag tag-june">六月</span>'
       : '<span class="tag tag-july">七月</span>';
     tr.innerHTML = `
-      <td>${sectionTag}</td>
-      <td>${r.date || '—'}</td>
-      <td>${r.day || '—'}</td>
-      <td>${trunc(r.book, 8)}</td>
-      <td>${trunc(r.passage, 14)}</td>
-      <td title="${(r.focus||'').replace(/"/g,'&quot;')}">${trunc(r.focus, 18)}</td>
-      <td title="${(r.navigation||'').replace(/"/g,'&quot;')}">${trunc(r.navigation, 22)}</td>
-      <td title="${(r.prayer||'').replace(/"/g,'&quot;')}">${trunc(r.prayer, 22)}</td>
-      <td title="${(r.verse||'').replace(/"/g,'&quot;')}">${trunc(r.verse, 22)}</td>
-    `;
+      <td>${tag}</td>
+      <td>${r.date||'—'}</td><td>${r.day||'—'}</td>
+      <td>${trunc(r.book,8)}</td><td>${trunc(r.passage,14)}</td>
+      <td title="${esc4attr(r.focus)}">${trunc(r.focus,18)}</td>
+      <td title="${esc4attr(r.navigation)}">${trunc(r.navigation,22)}</td>
+      <td title="${esc4attr(r.prayer)}">${trunc(r.prayer,22)}</td>
+      <td title="${esc4attr(r.verse)}">${trunc(r.verse,22)}</td>`;
     tbody.appendChild(tr);
   });
-
   document.getElementById('preview-stats').textContent =
-    `共 ${parsedRecords.length} 筆 · 六月 ${juneRecords.length} 天 · 七月 ${julyRecords.length} 天 · 表格中每欄截短顯示，滑鼠移上去看完整內容`;
+    `共 ${parsedRecords.length} 筆 · 六月 ${juneRecords.length} 天 · 七月 ${julyRecords.length} 天 · 滑鼠移到欄位可看完整內容`;
 }
 
-// ─── JS Code Generator ───────────────────────────────────────────────────────
+function esc4attr(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  JS Code Generator
+// ═══════════════════════════════════════════════════════════════════
+
 function escStr(s) {
-  if (s == null) return '';
-  return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"');
 }
 
 function recordsToJS(records) {
@@ -429,143 +602,124 @@ function recordsToJS(records) {
       `    focus:"${escStr(r.focus)}",\n` +
       `    navigation:"${escStr(r.navigation)}",\n` +
       `    practiceGod:"${escStr(r.practiceGod)}",\n` +
-      `    practicePeople:"${escStr(r.practicePeople || '')}",\n` +
+      `    practicePeople:"${escStr(r.practicePeople||'')}",\n` +
       `    prayer:"${escStr(r.prayer)}",\n` +
-      `    verse:"${escStr(r.verse)}", tags:"${escStr(r.tags || '')}" }`
+      `    verse:"${escStr(r.verse)}", tags:"${escStr(r.tags||'')}" }`
     );
   }).join(',\n');
 }
 
+function generatePlanMetaCode() {
+  return (
+    `const PLAN_META = {\n` +
+    `  june:  { title:"${escStr(planMeta.juneTitle)}", subtitle:"${escStr(planMeta.juneSubtitle)}" },\n` +
+    `  july:  { title:"${escStr(planMeta.julyTitle)}", subtitle:"${escStr(planMeta.julySubtitle)}" },\n` +
+    `  intro: "${escStr(planMeta.intro)}"\n` +
+    `};`
+  );
+}
+
 function generateJSSnippet() {
   return (
+    generatePlanMetaCode() + '\n\n' +
     `const JUNE_READINGS = [\n${recordsToJS(juneRecords)}\n];\n\n` +
     `const READINGS = [\n${recordsToJS(julyRecords)}\n];`
   );
 }
 
-// ─── Download JS snippet ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  Download JS snippet
+// ═══════════════════════════════════════════════════════════════════
+
 function downloadJS() {
   if (!parsedRecords.length) { alert('請先上傳 CSV 檔案'); return; }
-  const code = generateJSSnippet();
-  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+  const blob = new Blob([generateJSSnippet()], { type: 'text/plain;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'readings-update.txt';
   a.click();
 }
 
-// ─── GitHub Push ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  GitHub Push
+// ═══════════════════════════════════════════════════════════════════
+
 async function pushToGitHub() {
   if (!parsedRecords.length) { alert('請先上傳 CSV 檔案'); return; }
 
-  const token  = document.getElementById('gh-token').value.trim();
+  const token    = document.getElementById('gh-token').value.trim();
   const repoFull = document.getElementById('gh-repo').value.trim() || 'implanner139/bible';
-  const branch = document.getElementById('gh-branch').value.trim() || 'main';
+  const branch   = document.getElementById('gh-branch').value.trim() || 'main';
 
-  if (!token) {
-    alert('請先填入 GitHub Personal Access Token（在下方「GitHub 設定」區塊）');
-    return;
-  }
-
+  if (!token) { alert('請先填入 GitHub Personal Access Token'); return; }
   const [owner, repo] = repoFull.split('/');
-  if (!owner || !repo) { alert('Repository 格式錯誤，請填入「擁有者/倉庫名稱」'); return; }
+  if (!owner || !repo) { alert('Repository 格式錯誤：請填入「擁有者/倉庫名稱」'); return; }
 
   const btn = document.getElementById('btn-push');
-  btn.disabled = true;
-  btn.textContent = '⏳ 更新中…';
+  btn.disabled = true; btn.textContent = '⏳ 更新中…';
   setStatus('info', '<span class="spin">⚙</span> 正在從 GitHub 讀取 index.html…');
 
   try {
-    // 1. GET current file
-    const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/index.html`;
-    const getRes = await fetch(getUrl, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/index.html`;
+    const headers = { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' };
 
-    if (!getRes.ok) {
-      const err = await getRes.json();
-      throw new Error(`讀取 index.html 失敗（${getRes.status}）：${err.message || JSON.stringify(err)}`);
-    }
-
+    const getRes  = await fetch(apiUrl, { headers });
+    if (!getRes.ok) throw new Error(`讀取失敗（${getRes.status}）：${(await getRes.json()).message}`);
     const fileData = await getRes.json();
-    const sha = fileData.sha;
-    // GitHub returns base64 with potential newlines
+    const sha      = fileData.sha;
+
     const currentContent = decodeURIComponent(
-      Array.from(atob(fileData.content.replace(/\n/g, '')))
-        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('')
+      Array.from(atob(fileData.content.replace(/\n/g,'')))
+        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')
     );
 
     setStatus('info', '<span class="spin">⚙</span> 正在替換讀經資料…');
 
-    // 2. Replace JUNE_READINGS and READINGS in content
-    const newCode = generateJSSnippet();
     let newContent = currentContent;
 
-    const junePattern  = /const JUNE_READINGS\s*=\s*\[[\s\S]*?\];/;
-    const readingsPat  = /const READINGS\s*=\s*\[[\s\S]*?\];/;
-
-    const hasJune     = junePattern.test(newContent);
-    const hasReadings = readingsPat.test(newContent);
-
-    if (!hasJune && !hasReadings) {
-      throw new Error('在 index.html 中找不到 JUNE_READINGS 和 READINGS 陣列，請確認格式正確。');
+    // Replace PLAN_META
+    const metaPat = /const PLAN_META\s*=\s*\{[\s\S]*?\n\};/;
+    if (metaPat.test(newContent)) {
+      newContent = newContent.replace(metaPat, generatePlanMetaCode());
     }
-
-    if (hasJune) {
-      newContent = newContent.replace(junePattern,
-        `const JUNE_READINGS = [\n${recordsToJS(juneRecords)}\n];`
-      );
+    // Replace JUNE_READINGS
+    const junePat = /const JUNE_READINGS\s*=\s*\[[\s\S]*?\];/;
+    if (junePat.test(newContent)) {
+      newContent = newContent.replace(junePat, `const JUNE_READINGS = [\n${recordsToJS(juneRecords)}\n];`);
     }
-    if (hasReadings) {
-      newContent = newContent.replace(readingsPat,
-        `const READINGS = [\n${recordsToJS(julyRecords)}\n];`
-      );
+    // Replace READINGS
+    const readPat = /const READINGS\s*=\s*\[[\s\S]*?\];/;
+    if (readPat.test(newContent)) {
+      newContent = newContent.replace(readPat, `const READINGS = [\n${recordsToJS(julyRecords)}\n];`);
     }
 
     if (newContent === currentContent) {
-      throw new Error('替換後內容與原本完全相同，請確認 CSV 資料有正確填寫。');
+      throw new Error('替換後內容與原本相同，請確認 CSV 資料是否有正確填寫。');
     }
 
     setStatus('info', '<span class="spin">⚙</span> 正在推送到 GitHub…');
 
-    // 3. PUT updated file
-    const encodedContent = btoa(
-      unescape(encodeURIComponent(newContent))
-    );
-
+    const encodedContent = btoa(unescape(encodeURIComponent(newContent)));
     const now = new Date();
     const dateStr = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-    const putRes = await fetch(getUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `更新讀經計畫資料（${dateStr}）· via Admin`,
-        content: encodedContent,
-        sha: sha,
-        branch: branch
+        message: `更新讀經計畫（${dateStr}）· via Admin`,
+        content: encodedContent, sha, branch
       })
     });
+    if (!putRes.ok) throw new Error(`推送失敗（${putRes.status}）：${(await putRes.json()).message}`);
 
-    if (!putRes.ok) {
-      const err = await putRes.json();
-      throw new Error(`推送失敗（${putRes.status}）：${err.message || JSON.stringify(err)}`);
-    }
-
-    setStatus('ok', `✅ 成功推送！共更新 ${parsedRecords.length} 筆資料（June ${juneRecords.length} 天、July ${julyRecords.length} 天）。GitHub Pages 約 1 分鐘後生效。`);
-  } catch (err) {
+    setStatus('ok',
+      `✅ 推送成功！更新了計畫資料 + ${parsedRecords.length} 筆讀經內容（June ${juneRecords.length} 天、July ${julyRecords.length} 天）。` +
+      `GitHub Pages 約 1–2 分鐘後生效。`
+    );
+  } catch(err) {
     setStatus('err', `❌ ${err.message}`);
   } finally {
-    btn.disabled = false;
-    btn.textContent = '🚀 直接推送到 GitHub';
+    btn.disabled = false; btn.textContent = '🚀 直接推送到 GitHub';
   }
 }
 
@@ -576,41 +730,30 @@ function setStatus(type, html) {
   el.classList.remove('hidden');
 }
 
-// ─── Download template CSV ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+//  Download CSV template
+// ═══════════════════════════════════════════════════════════════════
+
 function downloadTemplate() {
-  const header = 'section,date,day,book,passage,focus,navigation,practiceGod,practicePeople,prayer,verse,tags';
-  const rows = [
-    'june,6/23,54,以西結書,以西結書 42 章,分別為聖—生命中需要保留神聖的空間,"在這裡填入真理導航的長段落。這段文字可以很長，不需要擔心換行，只要用引號包住整段即可。","今天的愛神練習","（可空白）","主啊，求祢教我建立界線。阿們。","「這牆是為了分別聖地與俗地。」（以西結書 42:20）",#界線 #分別為聖',
-    'july,7/1,1,羅馬書,羅馬書 1:1-32,福音是神的大能—能徹底翻轉你的人生底牌,"在這裡填入真理導航的長段落。","今天找5分鐘向神承認自己常想靠自己掌控一切。","留意一位正處於低潮的朋友，傳訊息表達關心。","主啊，今天我宣告祢是我生命的主。阿們。","「這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）",#大能 #核心重啟',
+  const lines = [
+    // Meta section
+    'PLAN_TITLE_JUNE,靈魂的室內設計師',
+    'PLAN_SUBTITLE_JUNE,以西結書 42–48 章',
+    'PLAN_TITLE_JULY,31天與保羅一起解鎖生命新視角',
+    'PLAN_SUBTITLE_JULY,羅馬書 · 加拉太書 · 歌羅西書 · 腓立比書 · 腓利門書',
+    'PLAN_INTRO,"在這裡填入計畫的完整簡介。可以是多句話的段落，請用引號包住整段文字。"',
+    '',
+    // Data header
+    'section,date,day,book,passage,focus,navigation,practiceGod,practicePeople,prayer,verse,tags',
+    // Sample rows
+    'june,6/23,54,以西結書,以西結書 42 章,分別為聖—生命中需要保留神聖的空間,"在這裡填入真理導航的長段落。這段文字可以很長，不需要擔心換行，只要用引號包住整段即可。","今天找一個安靜時刻，重新劃定與神相處的界線。","（可空白）","主啊，求祢教我建立界線，不讓世俗侵入我與祢相處的空間。阿們。","「這牆是為了分別聖地與俗地。」（以西結書 42:20）",#界線 #分別為聖',
+    'july,7/1,1,羅馬書,羅馬書 1:1-32,福音是神的大能—能徹底翻轉你的人生底牌,"在這裡填入真理導航的長段落。","今天找5分鐘，向神承認自己常想靠自己掌控一切的驕傲。","留意一位正處於低潮的朋友，傳訊息表達關心。","主啊，今天我宣告祢是我生命的主。阿們。","「這福音本是神的大能，要救一切相信的。」（羅馬書 1:16）",#大能 #核心重啟',
   ];
-  const csv = '﻿' + header + '\n' + rows.join('\n'); // BOM for Excel
+  const csv = '﻿' + lines.join('\n'); // BOM for Excel
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'reading-plan-template.csv';
-  a.click();
-}
-
-// ─── Export current parsed data as CSV ────────────────────────────────────────
-function downloadCurrentAsCSV() {
-  if (!parsedRecords.length) { alert('請先上傳 CSV 檔案'); return; }
-  const header = 'section,date,day,book,passage,focus,navigation,practiceGod,practicePeople,prayer,verse,tags';
-  function csvField(s) {
-    s = (s || '');
-    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-      return '"' + s.replace(/"/g, '""') + '"';
-    }
-    return s;
-  }
-  const rows = parsedRecords.map(r =>
-    [r.section,r.date,r.day,r.book,r.passage,r.focus,r.navigation,r.practiceGod,r.practicePeople||'',r.prayer,r.verse,r.tags||'']
-    .map(csvField).join(',')
-  );
-  const csv = '﻿' + header + '\n' + rows.join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'reading-plan-export.csv';
   a.click();
 }
 </script>
