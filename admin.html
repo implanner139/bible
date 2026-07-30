@@ -271,29 +271,6 @@
       </div>
     </div>
 
-    <!-- Google 登入設定說明（折疊） -->
-    <details class="card px-6 py-5">
-      <summary class="cursor-pointer text-sm font-bold text-gray-400 hover:text-white">
-        ⚙ Google 登入設定說明（第一次部署需要做）
-      </summary>
-      <div class="mt-4 space-y-3 text-sm text-gray-400" style="line-height:1.9">
-        <p class="text-white font-bold">需要做一次的設定（約 15 分鐘）：</p>
-        <ol class="list-decimal pl-5 space-y-2">
-          <li>前往 <a href="https://console.cloud.google.com/" target="_blank" class="text-yellow-400 underline">Google Cloud Console</a></li>
-          <li>建立新專案（或選現有的），名稱自訂，例如「bible-admin」</li>
-          <li>左側選單 → API 和服務 → 憑證</li>
-          <li>點「建立憑證」→「OAuth 2.0 用戶端 ID」→ 類型選「網頁應用程式」</li>
-          <li>「已授權的 JavaScript 來源」加入：<br>
-            <code style="color:#f5c518">https://implanner139.github.io</code>
-          </li>
-          <li>建立後，複製「用戶端 ID」（格式：數字-英文.apps.googleusercontent.com）</li>
-          <li>用文字編輯器打開 <code style="color:#aaa">admin.html</code>，搜尋 <code style="color:#f5c518">GOOGLE_CLIENT_ID_PLACEHOLDER</code>，換成你的 Client ID</li>
-          <li>修改下方的 <code style="color:#f5c518">ALLOWED_EMAILS</code>，加入可以登入的 Gmail 帳號</li>
-          <li>存檔後推送到 GitHub，完成！</li>
-        </ol>
-        <p class="text-xs text-gray-600 mt-2">目前 ALLOWED_EMAILS 在 admin.html 的 &lt;script&gt; 最上方，直接編輯那個陣列即可。</p>
-      </div>
-    </details>
 
   </main>
 </div><!-- end admin-main -->
