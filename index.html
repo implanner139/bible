@@ -3565,29 +3565,43 @@ let currentSection = 'july';
 let currentIndex = 0;
 let currentTab = 'scripture';
 
+// Parse a plan date string into {m, d}. Supports both "M/D" and "M月D日".
+function parsePlanDate(str) {
+  const zh = String(str).match(/(\d+)月(\d+)日/);
+  if (zh) return { m: +zh[1], d: +zh[2] };
+  const [m, d] = String(str).split('/').map(Number);
+  return { m, d };
+}
+
 function getTodayInfo() {
   const now = new Date();
   const m = now.getMonth() + 1, d = now.getDate();
-  const todayStr = `${m}/${d}`;
+  const todayVal = m * 100 + d;
   const sections = Object.keys(PLAN_DATA);
-  // Search for today's date in each section
+  // Search for today's exact date in each section (format-agnostic)
   for (const sec of sections) {
-    const idx = PLAN_DATA[sec].findIndex(r => r.date === todayStr);
+    const idx = PLAN_DATA[sec].findIndex(r => {
+      const p = parsePlanDate(r.date);
+      return p.m * 100 + p.d === todayVal;
+    });
     if (idx !== -1) return { section: sec, index: idx };
   }
-  // Not found — determine if before everything or after
+  // Not found — determine if before everything, or pick the latest day on/before today
   const allEntries = [];
   for (const sec of sections) {
     PLAN_DATA[sec].forEach((r, i) => {
-      const [rm, rd] = r.date.split('/').map(Number);
-      allEntries.push({ sec, i, val: rm * 100 + rd });
+      const p = parsePlanDate(r.date);
+      allEntries.push({ sec, i, val: p.m * 100 + p.d });
     });
   }
   if (!allEntries.length) return { section: sections[0] || 'july', index: -2 };
-  const todayVal = m * 100 + d;
   if (todayVal < allEntries[0].val) return { section: sections[0], index: -2 };
-  const last = allEntries[allEntries.length - 1];
-  return { section: last.sec, index: last.i };
+  // Latest reading whose date is on or before today
+  let chosen = allEntries[0];
+  for (const e of allEntries) {
+    if (e.val <= todayVal) chosen = e; else break;
+  }
+  return { section: chosen.sec, index: chosen.i };
 }
 
 const todayInfo = getTodayInfo();
