@@ -48,6 +48,20 @@
     .today-btn { padding: 14px 16px; border-radius: 12px; background: rgba(245,197,24,.1); border: 1px solid rgba(245,197,24,.4); font-size: .875rem; font-weight: 700; color: var(--gold); transition: all .2s; white-space: nowrap; }
     .locked-overlay { background: #111; border-radius: 16px; }
     .section-label { font-size: .625rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(245,197,24,.5); margin-bottom: 8px; }
+    /* Collapsible year / month toggles */
+    .yr-toggle { margin-bottom: 10px; }
+    .yr-toggle > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(245,197,24,.08); border: 1px solid rgba(245,197,24,.18); font-weight: 800; font-size: .9rem; color: var(--gold); }
+    .yr-toggle > summary::-webkit-details-marker { display: none; }
+    .yr-toggle > summary .chev, .mo-toggle > summary .chev { transition: transform .2s; font-size: .7rem; opacity: .7; }
+    .yr-toggle[open] > summary .chev, .mo-toggle[open] > summary .chev { transform: rotate(90deg); }
+    .yr-body { padding: 10px 4px 2px; }
+    .mo-toggle { margin-bottom: 8px; }
+    .mo-toggle > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; }
+    .mo-toggle > summary:hover { background: rgba(255,255,255,.03); }
+    .mo-toggle > summary::-webkit-details-marker { display: none; }
+    .mo-name { font-size: .8rem; font-weight: 800; color: rgba(232,232,240,.9); }
+    .mo-title { font-size: .6rem; font-weight: 600; color: rgba(245,197,24,.5); letter-spacing: .04em; }
+    .mo-body { padding: 8px 2px 4px; }
     .practice-god { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 14px; }
     .practice-people { background: rgba(245,197,24,.06); border: 1px solid rgba(245,197,24,.2); border-radius: 12px; padding: 14px; }
     .safe-bottom { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
@@ -3564,6 +3578,10 @@ const readDays = loadReadDays();
 let currentSection = 'july';
 let currentIndex = 0;
 let currentTab = 'scripture';
+// Remembers user's manual expand/collapse of month toggles across re-renders.
+// Value: true = open, false = collapsed. Unset = use default (current/future open).
+const monthOpenState = {};
+let yearOpenState = true;
 
 // Parse a plan date string into {m, d}. Supports both "M/D" and "M月D日".
 function parsePlanDate(str) {
@@ -3788,21 +3806,18 @@ function render() {
   document.getElementById('btn-today').classList.toggle('hidden', todayInfo.index === -2 || isTodaySelected());
   renderNotes();
 
-  // Dynamically render all section grids
+  // Dynamically render all section grids — grouped into collapsible Year › Month toggles
   const allGridsEl = document.getElementById('all-grids');
   allGridsEl.innerHTML = '';
   const MONTH_ZH = { january:'一月', february:'二月', march:'三月', april:'四月',
     may:'五月', june:'六月', july:'七月', august:'八月', september:'九月',
     october:'十月', november:'十一月', december:'十二月' };
-  Object.entries(PLAN_DATA).forEach(([sec, readings]) => {
-    const meta = PLAN_META[sec];
-    const monthLabel = MONTH_ZH[sec] || sec;
-    const label = meta ? `${meta.title} · ${monthLabel}` : monthLabel;
-    const secDiv = document.createElement('div');
-    secDiv.className = 'mb-3';
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'section-label px-1';
-    labelDiv.textContent = label;
+  const MONTH_NUM = { january:1, february:2, march:3, april:4, may:5, june:6,
+    july:7, august:8, september:9, october:10, november:11, december:12 };
+  const nowMonth = new Date().getMonth() + 1;
+
+  // Build a day-grid element for one section
+  function buildMonthGrid(sec, readings) {
     const gridDiv = document.createElement('div');
     gridDiv.className = 'grid grid-cols-7 gap-1.5';
     readings.forEach((rd, i) => {
@@ -3813,7 +3828,7 @@ function render() {
       const btn = document.createElement('button');
       btn.className = `day-btn p-1 text-center text-xs font-bold ${sel ? 'selected' : isT ? 'today' : isRead ? 'past' : 'future'} ${!avail ? 'locked' : ''}`;
       btn.style.minHeight = '42px';
-      const dateDisplay = rd.date.replace(/^\d+\//, '');
+      const dateDisplay = rd.date.replace(/^\d+\//, '').replace(/^(\d+)月(\d+)日$/, '$1/$2');
       btn.innerHTML = `<div style="font-size:9px;opacity:.6;margin-bottom:1px">${dateDisplay}</div><div style="font-size:12px">${rd.day}</div>${isRead && !sel ? '<div style="font-size:8px;color:#c9a84c;opacity:.7">✓</div>' : ''}`;
       if (avail) {
         btn.onclick = () => { currentSection = sec; currentIndex = i; currentTab = 'scripture'; render(); };
@@ -3822,10 +3837,43 @@ function render() {
       }
       gridDiv.appendChild(btn);
     });
-    secDiv.appendChild(labelDiv);
-    secDiv.appendChild(gridDiv);
-    allGridsEl.appendChild(secDiv);
+    return gridDiv;
+  }
+
+  // Group sections by year (all current data is 2026; falls back gracefully)
+  const YEAR = 2026;
+  const yearDetails = document.createElement('details');
+  yearDetails.className = 'yr-toggle';
+  yearDetails.open = yearOpenState; // remembered; defaults to expanded
+  yearDetails.addEventListener('toggle', () => { yearOpenState = yearDetails.open; });
+  const yearSummary = document.createElement('summary');
+  yearSummary.innerHTML = `<span class="chev">▶</span><span>${YEAR}</span>`;
+  yearDetails.appendChild(yearSummary);
+  const yearBody = document.createElement('div');
+  yearBody.className = 'yr-body';
+
+  Object.entries(PLAN_DATA).forEach(([sec, readings]) => {
+    const meta = PLAN_META[sec];
+    const monthLabel = MONTH_ZH[sec] || sec;
+    const mNum = MONTH_NUM[sec] || 99;
+
+    const moDetails = document.createElement('details');
+    moDetails.className = 'mo-toggle';
+    // Use remembered state if user toggled it; otherwise default: current & future expanded, past collapsed
+    moDetails.open = (sec in monthOpenState) ? monthOpenState[sec] : (mNum >= nowMonth);
+    moDetails.addEventListener('toggle', () => { monthOpenState[sec] = moDetails.open; });
+    const moSummary = document.createElement('summary');
+    moSummary.innerHTML = `<span class="chev">▶</span><span class="mo-name">${monthLabel}</span>${meta ? `<span class="mo-title">${meta.title}</span>` : ''}`;
+    moDetails.appendChild(moSummary);
+    const moBody = document.createElement('div');
+    moBody.className = 'mo-body';
+    moBody.appendChild(buildMonthGrid(sec, readings));
+    moDetails.appendChild(moBody);
+    yearBody.appendChild(moDetails);
   });
+
+  yearDetails.appendChild(yearBody);
+  allGridsEl.appendChild(yearDetails);
 
   switchTabUI(currentTab);
 }
