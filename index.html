@@ -3719,16 +3719,19 @@ function render() {
   const available = isAvailable(currentSection, currentIndex);
   const isToday = isTodaySelected();
 
-  // Header progress — dynamic across all sections
+  // Header progress — scoped to the CURRENTLY-VIEWED plan.
+  // A "plan" = all month-sections that share the same PLAN_META title
+  // (e.g. 八/九/十月 all belong to the 66-day plan). Denominator = that plan's
+  // total days; numerator = days actually read (✓) within that plan.
   const _allSecs = Object.keys(PLAN_DATA);
-  const _total = _allSecs.reduce((s, sec) => s + PLAN_DATA[sec].length, 0);
+  const _curTitle = (PLAN_META[currentSection] || {}).title;
+  const _planSecs = _allSecs.filter(sec =>
+    _curTitle ? (PLAN_META[sec] || {}).title === _curTitle : sec === currentSection);
+  const _total = _planSecs.reduce((s, sec) => s + PLAN_DATA[sec].length, 0);
   let completed = 0;
-  if (todayInfo.index !== -2) {
-    for (const sec of _allSecs) {
-      if (sec === todayInfo.section) { completed += todayInfo.index + 1; break; }
-      completed += PLAN_DATA[sec].length;
-    }
-  }
+  _planSecs.forEach(sec => {
+    PLAN_DATA[sec].forEach((_, i) => { if (readDays.has(dayKey(sec, i))) completed++; });
+  });
   document.getElementById('hdr-done').textContent = completed;
   document.getElementById('hdr-total').textContent = `/${_total}`;
   const pct = Math.round(completed / (_total || 1) * 100);
