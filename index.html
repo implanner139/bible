@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>讀經計畫 | iM行動教會</title>
+  <script>
+    // 系統於 2026/10/5 19:00（台灣時間）起關閉，改導向說明頁
+    (function () {
+      var CLOSE_AT = Date.parse('2026-10-05T19:00:00+08:00');
+      function check() {
+        if (Date.now() >= CLOSE_AT) location.replace('closed.html');
+      }
+      check();
+      setInterval(check, 60000);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') check();
+      });
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
